@@ -14,14 +14,16 @@ enum Token_Type {
 	OPEN_BRACKET,
 	STRING_VALUE,
 	NAME,
-	NUMBER
+	NUMBER,
+	BOOL
 };
 
 struct Token {
 	Token_Type type;
 	
 	std::string str;
-	float number;
+	float number = 0.0f;
+	bool bool_val = false;
 	
 //	union {
 //		float number;
@@ -35,6 +37,7 @@ struct Parser {
 	bool eof = false;
 	std::string str;
 	std::vector<Token> tokens;
+	std::string cache; // chars left that were not matching anything
 };
 
 
@@ -51,7 +54,8 @@ int main(int argc, const char * argv[]) {
 		"userId": 1,
 		"id": 1,
 		"title": "delectus aut autem",
-		"completed": false
+		"completed": false,
+		"test_bool": true
 		}
 	)";
 	
@@ -118,7 +122,7 @@ void consume(Parser* parser) {
 			if (!isdigit(pc)) {
 				found_end_of_number = true;
 			} else {
-				num_str.push_back(pc);
+				num_str += pc;
 				p_index++;
 			}
 		}
@@ -126,7 +130,26 @@ void consume(Parser* parser) {
 		token.number = std::stoi(num_str);
 		parser->tokens.push_back(token);
 		parser->index += num_str.size();
-	} else {
+	} else if (parser->cache.compare("false") == 0) { // is there a better way to do BOOLS?
+		Token token;
+		token.type = BOOL;
+		token.bool_val = false;
+		parser->tokens.push_back(token);
+		parser->index += parser->cache.size() - 1;
+		parser->cache.clear();
+	} else if (parser->cache.compare("true") == 0) {
+		Token token;
+		token.type = BOOL;
+		token.bool_val = true;
+		parser->tokens.push_back(token);
+		parser->index += 5;
+		parser->cache.clear();
+	}
+	else {
+		if (isalpha(c)) {
+			parser->cache += c;
+		}
+		
 		parser->index++;
 	}
 	
