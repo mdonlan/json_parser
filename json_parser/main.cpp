@@ -73,12 +73,13 @@ void consume(Parser* parser) {
 		Token token;
 		token.type = OPEN_BRACKET;
 		parser->tokens.push_back(token);
+		parser->index++;
 	} else if (c == '"') { // name/decl token or string value token
 		Token token;
 //		token.type = STRING;
 		
 		std::string str;
-		unsigned int p_index = parser->index;
+		unsigned int p_index = parser->index + 1;
 		bool found_end_of_string = false;
 		
 		while (!found_end_of_string) {
@@ -102,9 +103,12 @@ void consume(Parser* parser) {
 		token.str = str;
 		
 		parser->tokens.push_back(token);
+		parser->index += str.size() + 2; // +2 for ""
+	} else {
+		parser->index++;
 	}
 	
-	parser->index++;
+//	parser->index++;
 }
 
 char peek(Parser* parser, unsigned int index) {
