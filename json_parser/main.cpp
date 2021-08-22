@@ -53,6 +53,7 @@ struct AST_Pair_Node;
 
 struct AST_Node {
 	AST_Node_Type type;
+	std::string name;
 //	AST_Node* left;
 //	AST_Node* right;
 	std::vector<AST_Node*> children;
@@ -62,7 +63,9 @@ struct AST_Node {
 
 enum class Value_Type {
 	NUMBER,
-	STRING
+	STRING,
+	BOOL,
+	OBJECT
 };
 
 struct AST_Value_Node {
@@ -70,6 +73,7 @@ struct AST_Value_Node {
 	std::string str;
 	float number = 0.0f;
 	bool bool_val = false;
+	AST_Node* object;
 };
 
 struct AST_Pair_Node {
@@ -79,10 +83,20 @@ struct AST_Pair_Node {
 	AST_Node* parent;
 };
 
-
-
 struct AST {
 	AST_Node* root;
+};
+
+enum class Print_Type {
+	STRING,
+	NUMBER,
+	BOOL
+};
+
+struct Print_Data {
+	std::string str;
+	float number;
+	bool bool_val;
 };
 
 
@@ -92,19 +106,50 @@ char peek(Parser* parser, unsigned int index);
 void eat_whitespace(Parser* parser);
 AST* create_ast(std::vector<Token>& tokens);
 void print_ast(AST* ast);
+void pretty_print(int indent, Print_Type type, Print_Data data, bool new_line = true);
+void print_object(AST_Node* node, int indent);
+
 
 int main(int argc, const char * argv[]) {
 	Parser* parser = new Parser;
 	
 	std::string test_json = R"(
 		{
-		"userId": 1,
-		"id": 1,
-		"title": "delectus aut autem",
-		"completed": false,
-		"test_bool": true
+			"userId": 1,
+			"id": 1,
+			"title": "delectus aut autem",
+			"completed": false,
+			"test_bool": true,
+			"test_obj": {
+				"blah": 5
+			}
 		}
 	)";
+	
+//	std::string test_json = R"(
+//		{
+//			"glossary": {
+//				"title": "example glossary",
+//				"GlossDiv": {
+//					"title": "S",
+//					"GlossList": {
+//						"GlossEntry": {
+//							"ID": "SGML",
+//							"SortAs": "SGML",
+//							"GlossTerm": "Standard Generalized Markup Language",
+//							"Acronym": "SGML",
+//							"Abbrev": "ISO 8879:1986",
+//							"GlossDef": {
+//								"para": "A meta-markup language, used to create markup languages such as DocBook.",
+//								"GlossSeeAlso": ["GML", "XML"]
+//							},
+//							"GlossSee": "markup"
+//						}
+//					}
+//				}
+//			}
+//		}
+//	)";
 	
 	parser->str = test_json;
 	
@@ -234,18 +279,41 @@ AST* create_ast(std::vector<Token>& tokens) {
 	int token_index = 0;
 	Token current_token = tokens[token_index];
 	
-	AST_Node* root_node = new AST_Node;
-	root_node->type = AST_Node_Type::ROOT;
-	ast->root = root_node;
+//	AST_Node* root_node = new AST_Node;
+//	root_node->type = AST_Node_Type::ROOT;
+//	ast->root = root_node;
 	
-	AST_Node* current_node = ast->root;
+	AST_Node* current_node = nullptr;
+	AST_Pair_Node* current_pair_node = nullptr;
 	
 	while (current_token.type != Token_Type::END_OF_FILE) {
+		
 		if (current_token.type == Token_Type::OPEN_BRACKET) { // object node
-			AST_Node* node = new AST_Node;
-			node->type = AST_Node_Type::OBJECT;
-			current_node->children.push_back(node);
-			current_node = node;
+			
+			// setup root node
+			if (!current_node) {
+				AST_Node* root_node = new AST_Node;
+				root_node->type = AST_Node_Type::OBJECT;
+				root_node->name = "ROOT";
+				ast->root = root_node;
+				current_node = root_node;
+			} else {
+				AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
+				
+//				AST_Node* node = new AST_Node;
+				pair_node->value_node.type = Value_Type::OBJECT;
+				
+				AST_Node* new_object_node = new AST_Node;
+				new_object_node->type = AST_Node_Type::OBJECT;
+				new_object_node->name = pair_node->key;
+				new_object_node->parent = current_node;
+				pair_node->value_node.object = new_object_node;
+				
+	//			current_node->children.push_back(node);
+				current_node = new_object_node;
+			}
+			
+			
 		} else if (current_token.type == Token_Type::NAME) { // name node
 			if (current_node->type != AST_Node_Type::OBJECT) assert(false);
 			
@@ -253,10 +321,6 @@ AST* create_ast(std::vector<Token>& tokens) {
 			pair_node->key = current_token.str;
 			pair_node->parent = current_node;
 			current_node->properties.push_back(pair_node);
-//			current_node->
-//			AST_Node* node = new AST_Node;
-//			node->type = AST_Node_Type::NAME;
-//			current_node->children.push_back(node);
 		} else if (current_token.type == Token_Type::STRING_VALUE) {
 			if (current_node->type != AST_Node_Type::OBJECT) assert(false);
 			
@@ -277,8 +341,16 @@ AST* create_ast(std::vector<Token>& tokens) {
 			value_node.number = current_token.number;
 			
 			pair_node->value_node = value_node;
-		} else if (current_token.type == Token_Type::END_OF_FILE) {
+		} else if (current_token.type == Token_Type::BOOL) {
+			if (current_node->type != AST_Node_Type::OBJECT) assert(false);
 			
+			AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
+			
+			AST_Value_Node value_node;
+			value_node.type = Value_Type::BOOL;
+			value_node.bool_val = current_token.bool_val;
+			
+			pair_node->value_node = value_node;
 		}
 		
 		token_index++;
@@ -288,42 +360,79 @@ AST* create_ast(std::vector<Token>& tokens) {
 	return ast;
 }
 
-enum class Print_Type {
-	STRING,
-	NUMBER
-};
 
-void pretty_print(int indent, Print_Type type, void* buffer) {
+
+void pretty_print(int indent, Print_Type type, Print_Data data, bool new_line) {
 	for (int i = 0; i < indent; i++) {
 		printf("	");
 	}
 	
 	if (type == Print_Type::STRING) {
-		printf("%s\n", buffer);
+		printf("%s", data.str.c_str());
 	} else if (type == Print_Type::NUMBER) {
-		printf("%f\n", buffer);
+		printf("%f", data.number);
+	} else if (type == Print_Type::BOOL) {
+		bool bool_val = data.bool_val;
+		if (bool_val) printf("true");
+		else printf("false");
 	}
 	
+	if (new_line) printf("\n");
+}
+
+void print_object(AST_Node* node, int indent) {
+	for (AST_Pair_Node* pair_node : node->properties) {
+		Print_Data key_data{.str = pair_node->key.c_str()};
+		if (pair_node->value_node.type == Value_Type::OBJECT) {
+			// if an the value type is object add a new line and increase indent
+			pretty_print(indent, Print_Type::STRING, key_data, true);
+			indent++;
+		}
+		else pretty_print(indent, Print_Type::STRING, key_data, false);
+
+		if (pair_node->value_node.type == Value_Type::NUMBER) {
+			Print_Data data{.number = pair_node->value_node.number};
+			pretty_print(indent, Print_Type::NUMBER, data);
+		} else if (pair_node->value_node.type == Value_Type::STRING) {
+			Print_Data data{.str = pair_node->value_node.str};
+			pretty_print(indent, Print_Type::STRING, data);
+		} else if (pair_node->value_node.type == Value_Type::BOOL) {
+			Print_Data data{.bool_val = pair_node->value_node.bool_val};
+			pretty_print(indent, Print_Type::BOOL, data);
+		} else if (pair_node->value_node.type == Value_Type::OBJECT) {
+			print_object(pair_node->value_node.object, indent);
+		}
+	}
 }
 
 void print_ast(AST* ast) {
 	int indent = 0;
 	
 	AST_Node* current_node = ast->root;
-	char* buffer = "Root";
-	pretty_print(indent, Print_Type::STRING, buffer);
+	Print_Data root_data{.str = current_node->name.c_str()};
+	pretty_print(indent, Print_Type::STRING, root_data);
 	indent++;
 	
-	for (AST_Node* node : current_node->children) {
-		char* buffer = "Node";
-		pretty_print(indent, Print_Type::STRING, buffer);
-		indent++;
-		for (AST_Pair_Node* pair_node : node->properties) {
-			char* buffer;
-			strcpy(buffer, pair_node->key.c_str());
-			pretty_print(indent, Print_Type::STRING, buffer);
-		}
-	}
+	print_object(current_node, indent);
 	
-	int a = 0;
+//	for (AST_Pair_Node* pair_node : current_node->properties) {
+//		Print_Data key_data{.str = pair_node->key.c_str()};
+//		pretty_print(indent, Print_Type::STRING, key_data, false);
+//
+//		if (pair_node->value_node.type == Value_Type::NUMBER) {
+//			Print_Data data{.number = pair_node->value_node.number};
+//			pretty_print(indent, Print_Type::NUMBER, data);
+//		} else if (pair_node->value_node.type == Value_Type::STRING) {
+//			Print_Data data{.str = pair_node->value_node.str};
+//			pretty_print(indent, Print_Type::STRING, data);
+//		} else if (pair_node->value_node.type == Value_Type::BOOL) {
+//			Print_Data data{.bool_val = pair_node->value_node.bool_val};
+//			pretty_print(indent, Print_Type::BOOL, data);
+//		} else if (pair_node->value_node.type == Value_Type::OBJECT) {
+//			current_node = pair_node->value_node.object;
+//		}
+//	}
+	
+	
+	
 }
