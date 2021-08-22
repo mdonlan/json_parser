@@ -5,7 +5,7 @@
 //  Created by Michael Donlan on 8/21/21.
 //
 
-#include <iostream>
+//#include <iostream>
 #include <string>
 #include <vector>
 
@@ -49,13 +49,40 @@ enum class AST_Node_Type {
 	NAME
 };
 
+struct AST_Pair_Node;
+
 struct AST_Node {
 	AST_Node_Type type;
-	std::vector<AST_Node> children;
+//	AST_Node* left;
+//	AST_Node* right;
+	std::vector<AST_Node*> children;
+	std::vector<AST_Pair_Node*> properties;
+	AST_Node* parent;
 };
 
+enum class Value_Type {
+	NUMBER,
+	STRING
+};
+
+struct AST_Value_Node {
+	Value_Type type;
+	std::string str;
+	float number = 0.0f;
+	bool bool_val = false;
+};
+
+struct AST_Pair_Node {
+//	AST_Node_Type type;
+	std::string key;
+	AST_Value_Node value_node;
+	AST_Node* parent;
+};
+
+
+
 struct AST {
-	AST_Node root;
+	AST_Node* root;
 };
 
 
@@ -63,7 +90,8 @@ struct AST {
 void consume(Parser* parser);
 char peek(Parser* parser, unsigned int index);
 void eat_whitespace(Parser* parser);
-void create_ast(std::vector<Token>& tokens);
+AST* create_ast(std::vector<Token>& tokens);
+void print_ast(AST* ast);
 
 int main(int argc, const char * argv[]) {
 	Parser* parser = new Parser;
@@ -86,7 +114,8 @@ int main(int argc, const char * argv[]) {
 	}
 	
 	// parse (create ast)
-	create_ast(parser->tokens);
+	AST* ast = create_ast(parser->tokens);
+	print_ast(ast);
 	
 	return 0;
 }
@@ -199,31 +228,101 @@ void eat_whitespace(Parser* parser) {
 	}
 }
 
-void create_ast(std::vector<Token>& tokens) {
-	AST ast;
+AST* create_ast(std::vector<Token>& tokens) {
+	AST* ast = new AST;
 	
 	int token_index = 0;
 	Token current_token = tokens[token_index];
 	
-	AST_Node root_node;
-	root_node.type = AST_Node_Type::ROOT;
-	ast.root = root_node;
+	AST_Node* root_node = new AST_Node;
+	root_node->type = AST_Node_Type::ROOT;
+	ast->root = root_node;
 	
-	AST_Node& current_node = ast.root;
+	AST_Node* current_node = ast->root;
 	
 	while (current_token.type != Token_Type::END_OF_FILE) {
-		if (current_token.type == Token_Type::OPEN_BRACKET) {
-			AST_Node node;
-			node.type = AST_Node_Type::OBJECT;
-			current_node.children.push_back(node);
-		} else if (current_token.type == Token_Type::NAME) {
-			AST_Node node;
-			node.type = AST_Node_Type::NAME;
-			current_node.children.push_back(node);
+		if (current_token.type == Token_Type::OPEN_BRACKET) { // object node
+			AST_Node* node = new AST_Node;
+			node->type = AST_Node_Type::OBJECT;
+			current_node->children.push_back(node);
+			current_node = node;
+		} else if (current_token.type == Token_Type::NAME) { // name node
+			if (current_node->type != AST_Node_Type::OBJECT) assert(false);
+			
+			AST_Pair_Node* pair_node = new AST_Pair_Node;
+			pair_node->key = current_token.str;
+			pair_node->parent = current_node;
+			current_node->properties.push_back(pair_node);
+//			current_node->
+//			AST_Node* node = new AST_Node;
+//			node->type = AST_Node_Type::NAME;
+//			current_node->children.push_back(node);
+		} else if (current_token.type == Token_Type::STRING_VALUE) {
+			if (current_node->type != AST_Node_Type::OBJECT) assert(false);
+			
+			AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
+			
+			AST_Value_Node value_node;
+			value_node.type = Value_Type::STRING;
+			value_node.str = current_token.str;
+			
+			pair_node->value_node = value_node;
+		} else if (current_token.type == Token_Type::NUMBER) {
+			if (current_node->type != AST_Node_Type::OBJECT) assert(false);
+			
+			AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
+			
+			AST_Value_Node value_node;
+			value_node.type = Value_Type::NUMBER;
+			value_node.number = current_token.number;
+			
+			pair_node->value_node = value_node;
+		} else if (current_token.type == Token_Type::END_OF_FILE) {
+			
 		}
 		
 		token_index++;
 		current_token = tokens[token_index];
+	}
+	
+	return ast;
+}
+
+enum class Print_Type {
+	STRING,
+	NUMBER
+};
+
+void pretty_print(int indent, Print_Type type, void* buffer) {
+	for (int i = 0; i < indent; i++) {
+		printf("	");
+	}
+	
+	if (type == Print_Type::STRING) {
+		printf("%s\n", buffer);
+	} else if (type == Print_Type::NUMBER) {
+		printf("%f\n", buffer);
+	}
+	
+}
+
+void print_ast(AST* ast) {
+	int indent = 0;
+	
+	AST_Node* current_node = ast->root;
+	char* buffer = "Root";
+	pretty_print(indent, Print_Type::STRING, buffer);
+	indent++;
+	
+	for (AST_Node* node : current_node->children) {
+		char* buffer = "Node";
+		pretty_print(indent, Print_Type::STRING, buffer);
+		indent++;
+		for (AST_Pair_Node* pair_node : node->properties) {
+			char* buffer;
+			strcpy(buffer, pair_node->key.c_str());
+			pretty_print(indent, Print_Type::STRING, buffer);
+		}
 	}
 	
 	int a = 0;
