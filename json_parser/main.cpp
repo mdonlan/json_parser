@@ -13,13 +13,15 @@
 enum Token_Type {
 	OPEN_BRACKET,
 	STRING_VALUE,
-	NAME
+	NAME,
+	NUMBER
 };
 
 struct Token {
 	Token_Type type;
 	
 	std::string str;
+	float number;
 	
 //	union {
 //		float number;
@@ -101,9 +103,29 @@ void consume(Parser* parser) {
 		}
 		
 		token.str = str;
-		
 		parser->tokens.push_back(token);
 		parser->index += str.size() + 2; // +2 for ""
+	} else if (isdigit(c)) { // number token
+		Token token;
+		token.type = NUMBER;
+		
+		std::string num_str(1, c);
+		bool found_end_of_number = false;
+		unsigned int p_index = parser->index + 1;
+		
+		while (!found_end_of_number) {
+			char pc = peek(parser, p_index);
+			if (!isdigit(pc)) {
+				found_end_of_number = true;
+			} else {
+				num_str.push_back(pc);
+				p_index++;
+			}
+		}
+		
+		token.number = std::stoi(num_str);
+		parser->tokens.push_back(token);
+		parser->index += num_str.size();
 	} else {
 		parser->index++;
 	}
