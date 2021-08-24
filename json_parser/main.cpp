@@ -30,6 +30,7 @@ int main(int argc, const char * argv[]) {
 	Json_Data* json_data = parse(parser, test_json);
 	
 	print_ast(json_data->ast);
+	
 	do_tests();
 	
 	return 0;

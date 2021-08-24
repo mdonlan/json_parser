@@ -248,6 +248,7 @@ void print_object(AST_Node* node, int indent) {
 }
 
 void print_ast(AST* ast) {
+	printf("Printing AST\n\n");
 	int indent = 0;
 	
 	AST_Node* current_node = ast->root;
