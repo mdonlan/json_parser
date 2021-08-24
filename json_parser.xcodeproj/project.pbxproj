@@ -31,10 +31,19 @@
 		4C66AED826D4A1E800EFD62D /* Tests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Tests.h; sourceTree = "<group>"; };
 		4C66AED926D4A1F900EFD62D /* Tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Tests.cpp; sourceTree = "<group>"; };
 		4C66AEDE26D4A3B700EFD62D /* json.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = json.cpp; sourceTree = "<group>"; };
+		4C66AEE626D58EA200EFD62D /* json_parser_tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = json_parser_tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4C66AEEF26D593D000EFD62D /* catch.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = catch.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		4C66AECA26D1B99F00EFD62D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4C66AEE326D58EA200EFD62D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -56,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				4C66AECD26D1B99F00EFD62D /* json_parser */,
+				4C66AEE626D58EA200EFD62D /* json_parser_tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -63,6 +73,7 @@
 		4C66AECF26D1B99F00EFD62D /* json_parser */ = {
 			isa = PBXGroup;
 			children = (
+				4C66AEEF26D593D000EFD62D /* catch.hpp */,
 				4C66AED026D1B99F00EFD62D /* main.cpp */,
 				4C66AED726D4A07E00EFD62D /* json.h */,
 				4C66AEDE26D4A3B700EFD62D /* json.cpp */,
@@ -92,6 +103,23 @@
 			productReference = 4C66AECD26D1B99F00EFD62D /* json_parser */;
 			productType = "com.apple.product-type.tool";
 		};
+		4C66AEE526D58EA200EFD62D /* json_parser_tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4C66AEEB26D58EA200EFD62D /* Build configuration list for PBXNativeTarget "json_parser_tests" */;
+			buildPhases = (
+				4C66AEE226D58EA200EFD62D /* Sources */,
+				4C66AEE326D58EA200EFD62D /* Frameworks */,
+				4C66AEE426D58EA200EFD62D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = json_parser_tests;
+			productName = json_parser_tests;
+			productReference = 4C66AEE626D58EA200EFD62D /* json_parser_tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -101,6 +129,9 @@
 				LastUpgradeCheck = 1250;
 				TargetAttributes = {
 					4C66AECC26D1B99F00EFD62D = {
+						CreatedOnToolsVersion = 12.5.1;
+					};
+					4C66AEE526D58EA200EFD62D = {
 						CreatedOnToolsVersion = 12.5.1;
 					};
 				};
@@ -119,9 +150,20 @@
 			projectRoot = "";
 			targets = (
 				4C66AECC26D1B99F00EFD62D /* json_parser */,
+				4C66AEE526D58EA200EFD62D /* json_parser_tests */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4C66AEE426D58EA200EFD62D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		4C66AEC926D1B99F00EFD62D /* Sources */ = {
@@ -131,6 +173,13 @@
 				4C66AED126D1B99F00EFD62D /* main.cpp in Sources */,
 				4C66AEDA26D4A1F900EFD62D /* Tests.cpp in Sources */,
 				4C66AEE026D4A3B700EFD62D /* json.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4C66AEE226D58EA200EFD62D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -264,6 +313,38 @@
 			};
 			name = Release;
 		};
+		4C66AEEC26D58EA200EFD62D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = json_parser_tests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "md.json-parser-tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		4C66AEED26D58EA200EFD62D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = json_parser_tests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "md.json-parser-tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -281,6 +362,15 @@
 			buildConfigurations = (
 				4C66AED526D1B99F00EFD62D /* Debug */,
 				4C66AED626D1B99F00EFD62D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4C66AEEB26D58EA200EFD62D /* Build configuration list for PBXNativeTarget "json_parser_tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4C66AEEC26D58EA200EFD62D /* Debug */,
+				4C66AEED26D58EA200EFD62D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
