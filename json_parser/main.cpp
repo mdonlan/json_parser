@@ -12,26 +12,26 @@
 #include "Tests.h"
 #define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
+#include <iostream>
+
 
 int main(int argc, const char * argv[]) {
 	
+//	std::string json_str = R"(
+//		{
+//			"userId": 1,
+//			"id": 1,
+//			"title": "delectus aut autem",
+//			"completed": false,
+//			"test_bool": true,
+//			"test_obj": {
+//				"blah": 5
+//			}
+//		}
+//	)";
 	
-	Parser* parser = new Parser;
-	
-	std::string test_json = R"(
-		{
-			"userId": 1,
-			"id": 1,
-			"title": "delectus aut autem",
-			"completed": false,
-			"test_bool": true,
-			"test_obj": {
-				"blah": 5
-			}
-		}
-	)";
-	
-	Json_Data* json_data = parse(parser, test_json);
+	const std::string& json_str = load_json_from_file("json_test.json");
+	Json_Data* json_data = parse(json_str);
 	
 	print_ast(json_data->ast);
 	

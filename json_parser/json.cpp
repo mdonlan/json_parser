@@ -6,6 +6,7 @@
 //
 
 #include "json.h"
+#include <fstream>
 
 void consume(Parser* parser) {
 	eat_whitespace(parser);
@@ -77,24 +78,26 @@ void consume(Parser* parser) {
 		token.number = std::stoi(num_str);
 		parser->tokens.push_back(token);
 		parser->index += num_str.size();
-	} else if (parser->cache.compare("false") == 0) { // is there a better way to do BOOLS?
-		Token token;
-		token.type = Token_Type::BOOL;
-		token.bool_val = false;
-		parser->tokens.push_back(token);
-		parser->index += parser->cache.size() - 1;
-		parser->cache.clear();
-	} else if (parser->cache.compare("true") == 0) {
-		Token token;
-		token.type = Token_Type::BOOL;
-		token.bool_val = true;
-		parser->tokens.push_back(token);
-		parser->index += 5;
-		parser->cache.clear();
 	}
 	else {
 		if (isalpha(c)) {
 			parser->cache += c;
+			
+			if (parser->cache.compare("false") == 0) { // is there a better way to do BOOLS?
+				Token token;
+				token.type = Token_Type::BOOL;
+				token.bool_val = false;
+				parser->tokens.push_back(token);
+				parser->index++;
+				parser->cache.clear();
+			} else if (parser->cache.compare("true") == 0) {
+				Token token;
+				token.type = Token_Type::BOOL;
+				token.bool_val = true;
+				parser->tokens.push_back(token);
+				parser->index++;
+				parser->cache.clear();
+			}
 		}
 		
 		parser->index++;
@@ -109,10 +112,15 @@ char peek(Parser* parser, unsigned int index) {
 
 void eat_whitespace(Parser* parser) {
 	char c = parser->str[parser->index];
-	while (c == ' ' || c == '\n' || c == '\t') {
+	while (isspace(c)) {
 		parser->index++;
 		c = parser->str[parser->index];
 	}
+//	while (c == ' ' || c == '\n' || c == '\t') {
+//		parser->index++;
+//		c = parser->str[parser->index];
+//	}
+	
 }
 
 AST* create_ast(std::vector<Token>& tokens) {
@@ -248,8 +256,8 @@ void print_object(AST_Node* node, int indent) {
 }
 
 void print_ast(AST* ast) {
-	printf("Printing AST\n\n");
-	int indent = 0;
+	printf("Printing AST\n\nSTART AST\n");
+	int indent = 1;
 	
 	AST_Node* current_node = ast->root;
 	Print_Data root_data{.str = current_node->name.c_str()};
@@ -276,6 +284,7 @@ void print_ast(AST* ast) {
 //		}
 //	}
 	
+	printf("END AST\n\n");
 	
 	
 }
@@ -286,10 +295,26 @@ void lex(Parser* parser) {
 	}
 }
 
-Json_Data* parse(Parser* parser, std::string str) {
+Json_Data* parse(std::string str) {
+	Parser* parser = new Parser;
 	parser->str = str;
 	lex(parser);
 	Json_Data* json_data = new Json_Data;
 	json_data->ast = create_ast(parser->tokens);
+	json_data->tokens = parser->tokens;
+	delete parser;
 	return json_data;
+}
+
+const std::string& load_json_from_file(const std::string& file_name) {
+	std::ifstream json_test_file(file_name);
+	std::string json_test_str;
+	if (!json_test_file.is_open()) {
+		printf("ERROR - Failed to open file test_json.json\n");
+	}
+	json_test_str.assign((std::istreambuf_iterator<char>(json_test_file)), (std::istreambuf_iterator<char>()));
+
+	json_test_file.close();
+	
+	return json_test_str;
 }

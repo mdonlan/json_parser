@@ -13,9 +13,9 @@
 void do_tests() {
 	printf("\n\nRunning Tests...\n");
 	
-	Parser* parser = new Parser;
+//	Parser* parser = new Parser;
 	
-	Json_Data* json_data = parse(parser, std::string{R"({"key": "value"}})"});
+	Json_Data* json_data = parse(std::string{R"({"key": "value"}})"});
 	
 	AST_Node* root_node = json_data->ast->root;
 //	assert(root_node);
@@ -38,18 +38,34 @@ void do_tests() {
 
 TEST_CASE( "\nALL TESTS\n", "[all]" ) {
 	
-	Parser* parser = new Parser;
-	Json_Data* json_data = parse(parser, std::string{R"({"key": "value"}})"});
-	
+//	Parser* parser = new Parser;
+
+//	Json_Data* json_data = parse(std::string{R"(
+//		{
+//			"test_key": "test_str_value",
+//			"test_key_2": 2
+//		}
+//	)"});
+	Json_Data* json_data = parse(load_json_from_file("json_test.json"));
 	AST_Node* root_node = json_data->ast->root;
 	
 	REQUIRE(root_node != nullptr);
 	REQUIRE(root_node->name.compare("ROOT") == 0);
 	
 	AST_Pair_Node* pair_node = root_node->properties[0];
-	REQUIRE(pair_node->key.compare("key") == 0);
+	REQUIRE(pair_node->key.compare("userId") == 0);
+	REQUIRE(pair_node->value_node.type == Value_Type::NUMBER);
+	REQUIRE(pair_node->value_node.number == 1);
+	
+	pair_node = root_node->properties[1];
+	REQUIRE(pair_node->key.compare("id") == 0);
+	REQUIRE(pair_node->value_node.type == Value_Type::NUMBER);
+	REQUIRE(pair_node->value_node.number == 1);
+	
+	pair_node = root_node->properties[2];
+	REQUIRE(pair_node->key.compare("title") == 0);
 	REQUIRE(pair_node->value_node.type == Value_Type::STRING);
-	REQUIRE(pair_node->value_node.str.compare("value") == 0);
+	REQUIRE(pair_node->value_node.str.compare("delectus aut autem") == 0);
 }
 
 
