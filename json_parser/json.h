@@ -83,11 +83,13 @@ enum class Value_Type {
 
 struct AST_Value_Node {
 	Value_Type type;
-	std::string str;
-	float number = 0.0f;
-	bool bool_val = false;
-	AST_Node* object;
-	std::vector<AST_Value_Node> array;
+//	std::string str;
+//	float number = 0.0f;
+//	bool bool_val = false;
+//	AST_Node* object;
+//	std::vector<AST_Value_Node> array;
+	
+	std::variant<std::string, float, bool, AST_Node*, std::vector<AST_Value_Node>> value;
 };
 
 struct AST_Pair_Node {

@@ -160,32 +160,41 @@ AST* create_ast(std::vector<Token>& tokens) {
 	AST_Node* current_node = nullptr;
 	AST_Pair_Node* current_pair_node = nullptr;
 	bool in_array = false;
+	std::vector<AST_Value_Node>* current_array;
 //	AST_Node* current_array_node = nullptr;
 	
 	while (current_token.type != Token_Type::END_OF_FILE) {
 		
+		// handle arrays
 		if (in_array) {
 			AST_Value_Node value_node;
+//			current_array = std::get<std::vector<AST_Value_Node>>(current_pair_node->value_node.value);
 			
 			switch (current_token.type) {
 				case Token_Type::STRING_VALUE:
 					value_node.type = Value_Type::STRING;
-					value_node.str = std::get<std::string>(current_token.value);
-					current_pair_node->value_node.array.push_back(value_node);
+					value_node.value = std::get<std::string>(current_token.value);
+					current_array->push_back(value_node);
 					break;
 				case Token_Type::NUMBER:
 					value_node.type = Value_Type::NUMBER;
-					value_node.number = std::get<float>(current_token.value);
-					current_pair_node->value_node.array.push_back(value_node);
+					value_node.value = std::get<float>(current_token.value);
+					current_array->push_back(value_node);
 				case Token_Type::BOOL:
 					value_node.type = Value_Type::BOOL;
-					value_node.bool_val = std::get<bool>(current_token.value);
-					current_pair_node->value_node.array.push_back(value_node);
+					value_node.value = std::get<bool>(current_token.value);
+					current_array->push_back(value_node);
+				case Token_Type::CLOSED_SQUARE_BRACKET:
+//					assert(false);
+				case Token_Type::OPEN_SQUARE_BRACKET:
+					value_node.type = Value_Type::ARRAY;
+					current_array->push_back(value_node);
+					current_array = &std::get<std::vector<AST_Value_Node>>(current_pair_node->value_node.value);;
 				default:
 					break;
 			}
 			
-			
+			// handle everything else
 		} else {
 			if (current_token.type == Token_Type::OPEN_CURLY_BRACKET) { // object node
 				
@@ -205,7 +214,7 @@ AST* create_ast(std::vector<Token>& tokens) {
 					new_object_node->type = AST_Node_Type::OBJECT;
 					new_object_node->name = pair_node->key;
 					new_object_node->parent = current_node;
-					pair_node->value_node.object = new_object_node;
+					pair_node->value_node.value = new_object_node;
 					
 		//			current_node->children.push_back(node);
 					current_node = new_object_node;
@@ -227,7 +236,7 @@ AST* create_ast(std::vector<Token>& tokens) {
 				
 				AST_Value_Node value_node;
 				value_node.type = Value_Type::STRING;
-				value_node.str = std::get<std::string>(current_token.value);
+				value_node.value = std::get<std::string>(current_token.value);
 				
 				pair_node->value_node = value_node;
 			} else if (current_token.type == Token_Type::NUMBER) {
@@ -237,7 +246,7 @@ AST* create_ast(std::vector<Token>& tokens) {
 				
 				AST_Value_Node value_node;
 				value_node.type = Value_Type::NUMBER;
-				value_node.number = std::get<float>(current_token.value);
+				value_node.value = std::get<float>(current_token.value);
 				
 				pair_node->value_node = value_node;
 			} else if (current_token.type == Token_Type::BOOL) {
@@ -247,18 +256,22 @@ AST* create_ast(std::vector<Token>& tokens) {
 				
 				AST_Value_Node value_node;
 				value_node.type = Value_Type::BOOL;
-				value_node.bool_val = std::get<bool>(current_token.value);
+				value_node.value = std::get<bool>(current_token.value);
 				
 				pair_node->value_node = value_node;
 			} else if (current_token.type == Token_Type::OPEN_SQUARE_BRACKET) {
 				in_array = true;
 				current_pair_node->value_node.type = Value_Type::ARRAY;
+				current_pair_node->value_node.value = std::vector<AST_Value_Node>{};
+				current_array = &std::get<std::vector<AST_Value_Node>>(current_pair_node->value_node.value);
 	//			AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
 	//			pair_node->value_node.type = Value_Type::ARRAY;
 	////			node->type = AST_Node_Type::ar
 	//			assert(false);
 			} else if (current_token.type == Token_Type::CLOSED_SQUARE_BRACKET) {
-				in_array = false;
+				assert(false); // we shouldn't hit here becuase we should deal w/ this in the in_array section
+//				assert(in_array); // we should not be trying to close out of a square bracket if not inside an array
+//				in_array = false;
 			} else if (current_token.type == Token_Type::CLOSED_CURLY_BRACKET) {
 				// end of object, set the parent as the current node
 				if (current_node->parent) {
@@ -350,11 +363,11 @@ void print_value(AST_Value_Node value_node, int indent) {
 		}
 	}
 	if (value_node.type == Value_Type::STRING) {
-		printf("%s", value_node.str.c_str());
+		printf("%s", std::get<std::string>(value_node.value).c_str());
 	} else if (value_node.type == Value_Type::NUMBER) {
-		printf("%f", value_node.number);
+		printf("%f", std::get<float>(value_node.value));
 	} else if (value_node.type == Value_Type::BOOL) {
-		bool bool_val = value_node.bool_val;
+		bool bool_val = std::get<bool>(value_node.value);
 		if (bool_val) printf("true");
 		else printf("false");
 	}
@@ -380,7 +393,7 @@ void print_object(AST_Node* node, int indent) {
 			printf("\n");
 		}
 		else if (pair_node->value_node.type == Value_Type::ARRAY) {
-			print_array(pair_node->value_node.array, indent);
+			print_array(std::get<std::vector<AST_Value_Node>>(pair_node->value_node.value), indent);
 		} else {
 			print_value(pair_node->value_node, indent);
 			printf("\n");

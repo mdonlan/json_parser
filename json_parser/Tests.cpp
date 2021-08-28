@@ -46,26 +46,41 @@ TEST_CASE( "\nALL TESTS\n", "[all]" ) {
 //			"test_key_2": 2
 //		}
 //	)"});
-	Json_Data* json_data = parse(load_json_from_file("json_test.json"));
-	AST_Node* root_node = json_data->ast->root;
 	
-	REQUIRE(root_node != nullptr);
-	REQUIRE(root_node->name.compare("ROOT") == 0);
+	SECTION("BASIC TESTS") {
+		Json_Data* json_data = parse(load_json_from_file("json_test.json"));
+		AST_Node* root_node = json_data->ast->root;
+		
+		REQUIRE(root_node != nullptr);
+		REQUIRE(root_node->name.compare("ROOT") == 0);
+		
+		AST_Pair_Node* pair_node = root_node->properties[0];
+		REQUIRE(pair_node->key.compare("userId") == 0);
+		REQUIRE(pair_node->value_node.type == Value_Type::NUMBER);
+		REQUIRE(std::get<float>(pair_node->value_node.value) == 1);
+		
+		pair_node = root_node->properties[1];
+		REQUIRE(pair_node->key.compare("id") == 0);
+		REQUIRE(pair_node->value_node.type == Value_Type::NUMBER);
+		REQUIRE(std::get<float>(pair_node->value_node.value) == 1);
+		
+		pair_node = root_node->properties[2];
+		REQUIRE(pair_node->key.compare("title") == 0);
+		REQUIRE(pair_node->value_node.type == Value_Type::STRING);
+		REQUIRE(std::get<std::string>(pair_node->value_node.value).compare("delectus aut autem") == 0);
+	}
 	
-	AST_Pair_Node* pair_node = root_node->properties[0];
-	REQUIRE(pair_node->key.compare("userId") == 0);
-	REQUIRE(pair_node->value_node.type == Value_Type::NUMBER);
-	REQUIRE(pair_node->value_node.number == 1);
+	SECTION("ARRAY TESTS") {
+		Json_Data* json_data = parse(std::string{R"(
+			{
+				"nested_array": [[]]
+			}
+		)"});
+		
+		int a = 0;
+	}
 	
-	pair_node = root_node->properties[1];
-	REQUIRE(pair_node->key.compare("id") == 0);
-	REQUIRE(pair_node->value_node.type == Value_Type::NUMBER);
-	REQUIRE(pair_node->value_node.number == 1);
 	
-	pair_node = root_node->properties[2];
-	REQUIRE(pair_node->key.compare("title") == 0);
-	REQUIRE(pair_node->value_node.type == Value_Type::STRING);
-	REQUIRE(pair_node->value_node.str.compare("delectus aut autem") == 0);
 }
 
 
