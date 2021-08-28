@@ -17,27 +17,32 @@ void consume(Parser* parser) {
 		parser->eof = true;
 		Token token;
 		token.type = Token_Type::END_OF_FILE;
+		token.value = '\0';
 		parser->tokens.push_back(token);
 	} else if (c == '{') { // left bracket token
 		Token token;
 		token.type = Token_Type::OPEN_CURLY_BRACKET;
+		token.value = '{';
 		parser->tokens.push_back(token);
 		parser->index++;
 	} else if (c == ':') {
 		Token token;
 		token.type = Token_Type::COLON;
+		token.value = ':';
 		parser->tokens.push_back(token);
 		parser->index++;
 	} else if (c == '[') {
 		// start of array of items
 		Token token;
 		token.type = Token_Type::OPEN_SQUARE_BRACKET;
+		token.value = '[';
 		parser->tokens.push_back(token);
 		parser->index++;
 	} else if (c == ']') {
 		// end of array of items
 		Token token;
 		token.type = Token_Type::CLOSED_SQUARE_BRACKET;
+		token.value = ']';
 		parser->tokens.push_back(token);
 		parser->index++;
 	} else if (c == '}') {
@@ -45,6 +50,7 @@ void consume(Parser* parser) {
 //		assert(false);
 		Token token;
 		token.type = Token_Type::CLOSED_CURLY_BRACKET;
+		token.value = '}';
 		parser->tokens.push_back(token);
 		parser->index++;
 	} else if (c == '"') { // name/decl token or string value token
@@ -72,7 +78,7 @@ void consume(Parser* parser) {
 			}
 		}
 		
-		token.str = str;
+		token.value = str;
 		parser->tokens.push_back(token);
 		parser->index += str.size() + 2; // +2 for ""
 	} else if (isdigit(c)) { // number token
@@ -93,7 +99,7 @@ void consume(Parser* parser) {
 			}
 		}
 		
-		token.number = std::stoi(num_str);
+		token.value = (float)std::stoi(num_str);
 		parser->tokens.push_back(token);
 		parser->index += num_str.size();
 	}
@@ -104,14 +110,14 @@ void consume(Parser* parser) {
 			if (parser->cache.compare("false") == 0) { // is there a better way to do BOOLS?
 				Token token;
 				token.type = Token_Type::BOOL;
-				token.bool_val = false;
+				token.value = false;
 				parser->tokens.push_back(token);
 				parser->index++;
 				parser->cache.clear();
 			} else if (parser->cache.compare("true") == 0) {
 				Token token;
 				token.type = Token_Type::BOOL;
-				token.bool_val = true;
+				token.value = true;
 				parser->tokens.push_back(token);
 				parser->index++;
 				parser->cache.clear();
@@ -164,16 +170,16 @@ AST* create_ast(std::vector<Token>& tokens) {
 			switch (current_token.type) {
 				case Token_Type::STRING_VALUE:
 					value_node.type = Value_Type::STRING;
-					value_node.str = current_token.str;
+					value_node.str = std::get<std::string>(current_token.value);
 					current_pair_node->value_node.array.push_back(value_node);
 					break;
 				case Token_Type::NUMBER:
 					value_node.type = Value_Type::NUMBER;
-					value_node.number = current_token.number;
+					value_node.number = std::get<float>(current_token.value);
 					current_pair_node->value_node.array.push_back(value_node);
 				case Token_Type::BOOL:
 					value_node.type = Value_Type::BOOL;
-					value_node.bool_val = current_token.bool_val;
+					value_node.bool_val = std::get<bool>(current_token.value);
 					current_pair_node->value_node.array.push_back(value_node);
 				default:
 					break;
@@ -210,7 +216,7 @@ AST* create_ast(std::vector<Token>& tokens) {
 				if (current_node->type != AST_Node_Type::OBJECT) assert(false);
 				
 				AST_Pair_Node* pair_node = new AST_Pair_Node;
-				pair_node->key = current_token.str;
+				pair_node->key = std::get<std::string>(current_token.value);
 				pair_node->parent = current_node;
 				current_node->properties.push_back(pair_node);
 				current_pair_node = pair_node;
@@ -221,7 +227,7 @@ AST* create_ast(std::vector<Token>& tokens) {
 				
 				AST_Value_Node value_node;
 				value_node.type = Value_Type::STRING;
-				value_node.str = current_token.str;
+				value_node.str = std::get<std::string>(current_token.value);
 				
 				pair_node->value_node = value_node;
 			} else if (current_token.type == Token_Type::NUMBER) {
@@ -231,7 +237,7 @@ AST* create_ast(std::vector<Token>& tokens) {
 				
 				AST_Value_Node value_node;
 				value_node.type = Value_Type::NUMBER;
-				value_node.number = current_token.number;
+				value_node.number = std::get<float>(current_token.value);
 				
 				pair_node->value_node = value_node;
 			} else if (current_token.type == Token_Type::BOOL) {
@@ -241,7 +247,7 @@ AST* create_ast(std::vector<Token>& tokens) {
 				
 				AST_Value_Node value_node;
 				value_node.type = Value_Type::BOOL;
-				value_node.bool_val = current_token.bool_val;
+				value_node.bool_val = std::get<bool>(current_token.value);
 				
 				pair_node->value_node = value_node;
 			} else if (current_token.type == Token_Type::OPEN_SQUARE_BRACKET) {

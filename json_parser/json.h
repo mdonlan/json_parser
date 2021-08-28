@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <variant>
 
 enum class Token_Type {
 	OPEN_CURLY_BRACKET,
@@ -27,9 +28,16 @@ enum class Token_Type {
 struct Token {
 	Token_Type type;
 	
-	std::string str;
-	float number = 0.0f;
-	bool bool_val = false;
+	std::variant <
+		std::string,
+		float,
+		bool,
+		char
+	> value;
+	
+//	std::string str;
+//	float number = 0.0f;
+//	bool bool_val = false;
 	
 //	union {
 //		float _number;
