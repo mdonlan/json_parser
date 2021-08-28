@@ -126,10 +126,12 @@ void consume(Parser* parser);
 char peek(Parser* parser, unsigned int index);
 void eat_whitespace(Parser* parser);
 AST* create_ast(std::vector<Token>& tokens);
-void print_ast(AST* ast);
-void pretty_print(int indent, Print_Type type, Print_Data data, bool new_line = true);
-void print_object(AST_Node* node, int indent);
-const std::string& load_json_from_file(const std::string& file_name);
+const std::string load_json_from_file(const std::string& file_name);
 
+void print_ast(AST* ast);
+//void pretty_print(int indent, Print_Type type, Print_Data data, bool new_line = true);
+void print_object(AST_Node* node, int indent);
+void print_array(std::vector<AST_Value_Node> array, int indent);
+void print_value(AST_Value_Node value_node, int indent = 0);
 
 #endif /* json_h */

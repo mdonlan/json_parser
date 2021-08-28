@@ -286,63 +286,121 @@ AST* create_ast(std::vector<Token>& tokens) {
 }
 
 void print_array(std::vector<AST_Value_Node> array, int indent) {
-	printf(" [\n");
-	for (AST_Value_Node node : array) {
-		if (node.type == Value_Type::NUMBER) {
-			Print_Data data{.number = node.number};
-			pretty_print(indent, Print_Type::NUMBER, data);
-		} else if (node.type == Value_Type::STRING) {
-			Print_Data data{.str = node.str};
-			pretty_print(indent, Print_Type::STRING, data);
-		}
+	printf("[\n");
+	for (int i = 0; i < indent + 1; i++) {
+		printf("	");
 	}
-	Print_Data data{.str = "]"};
-	pretty_print(indent - 1, Print_Type::STRING, data);
+	for (int i = 0; i < array.size(); i++) {
+		AST_Value_Node& node = array[i];
+//		for (int i = 0; i < indent; i++) {
+//			printf("	");
+//		}
+		print_value(node);
+		if (i < array.size() - 1) {
+			printf(", ");
+		}
+		
+//		if (node.type == Value_Type::NUMBER) {
+//			Print_Data data{.number = node.number};
+//			pretty_print(indent, Print_Type::NUMBER, data);
+//		} else if (node.type == Value_Type::STRING) {
+//			Print_Data data{.str = node.str};
+//			pretty_print(indent, Print_Type::STRING, data);
+//		}
+	}
+	printf("\n");
+	for (int i = 0; i < indent; i++) {
+		printf("	");
+	}
+	printf("]\n");
+//	Print_Data data{.str = "]"};
+//	pretty_print(indent - 1, Print_Type::STRING, data);
 }
 
+//void pretty_print(int indent, Print_Type type, Print_Data data, bool new_line) {
+//	for (int i = 0; i < indent; i++) {
+//		printf("	");
+//	}
+//
+//	if (type == Print_Type::STRING) {
+//		printf("%s", data.str.c_str());
+//	} else if (type == Print_Type::NUMBER) {
+//		printf("%f", data.number);
+//	} else if (type == Print_Type::BOOL) {
+//		bool bool_val = data.bool_val;
+//		if (bool_val) printf("true");
+//		else printf("false");
+//	}
+//
+//	if (new_line) printf("\n");
+//}
 
-void pretty_print(int indent, Print_Type type, Print_Data data, bool new_line) {
+void print_key(int indent, std::string_view name) {
 	for (int i = 0; i < indent; i++) {
 		printf("	");
 	}
 	
-	if (type == Print_Type::STRING) {
-		printf("%s", data.str.c_str());
-	} else if (type == Print_Type::NUMBER) {
-		printf("%f", data.number);
-	} else if (type == Print_Type::BOOL) {
-		bool bool_val = data.bool_val;
+	printf("%s: ", name);
+}
+
+void print_value(AST_Value_Node value_node, int indent) {
+	if (indent > 0) {
+		for (int i = 0; i < indent; i++) {
+			printf("	");
+		}
+	}
+	if (value_node.type == Value_Type::STRING) {
+		printf("%s", value_node.str.c_str());
+	} else if (value_node.type == Value_Type::NUMBER) {
+		printf("%f", value_node.number);
+	} else if (value_node.type == Value_Type::BOOL) {
+		bool bool_val = value_node.bool_val;
 		if (bool_val) printf("true");
 		else printf("false");
 	}
 	
-	if (new_line) printf("\n");
+//	printf("\n");
 }
 
 void print_object(AST_Node* node, int indent) {
 	for (AST_Pair_Node* pair_node : node->properties) {
-		Print_Data key_data{.str = pair_node->key.c_str()};
+		
+		// print key, if its an object then print with a new line after it and increase indent
+//		Print_Data key_data{.str = pair_node->key.c_str()};
+//		if (pair_node->value_node.type == Value_Type::OBJECT) {
+//			pretty_print(indent, Print_Type::STRING, key_data, false);
+//			printf(": \n");
+//			indent++;
+//		}
+//		else pretty_print(indent, Print_Type::STRING, key_data, false);
+		print_key(indent, pair_node->key);
+		
 		if (pair_node->value_node.type == Value_Type::OBJECT) {
-			// if an the value type is object add a new line and increase indent
-			pretty_print(indent, Print_Type::STRING, key_data, true);
 			indent++;
+			printf("\n");
 		}
-		else pretty_print(indent, Print_Type::STRING, key_data, false);
-
-		if (pair_node->value_node.type == Value_Type::NUMBER) {
-			Print_Data data{.number = pair_node->value_node.number};
-			pretty_print(indent, Print_Type::NUMBER, data);
-		} else if (pair_node->value_node.type == Value_Type::STRING) {
-			Print_Data data{.str = pair_node->value_node.str};
-			pretty_print(indent, Print_Type::STRING, data);
-		} else if (pair_node->value_node.type == Value_Type::BOOL) {
-			Print_Data data{.bool_val = pair_node->value_node.bool_val};
-			pretty_print(indent, Print_Type::BOOL, data);
-		} else if (pair_node->value_node.type == Value_Type::OBJECT) {
-			print_object(pair_node->value_node.object, indent);
-		} else if (pair_node->value_node.type == Value_Type::ARRAY) {
-			print_array(pair_node->value_node.array, indent + 1);
+		else if (pair_node->value_node.type == Value_Type::ARRAY) {
+			print_array(pair_node->value_node.array, indent);
+		} else {
+			print_value(pair_node->value_node, indent);
+			printf("\n");
 		}
+		
+//		// print the pair_node value based on its type
+//		if (pair_node->value_node.type == Value_Type::NUMBER) {
+//			Print_Data data{.number = pair_node->value_node.number};
+//			pretty_print(indent, Print_Type::NUMBER, data);
+//		} else if (pair_node->value_node.type == Value_Type::STRING) {
+//			Print_Data data{.str = pair_node->value_node.str};
+//			pretty_print(indent, Print_Type::STRING, data);
+//		} else if (pair_node->value_node.type == Value_Type::BOOL) {
+//			Print_Data data{.bool_val = pair_node->value_node.bool_val};
+//			pretty_print(indent, Print_Type::BOOL, data);
+//		} else if (pair_node->value_node.type == Value_Type::OBJECT) {
+//			print_object(pair_node->value_node.object, indent);
+//		} else if (pair_node->value_node.type == Value_Type::ARRAY) {
+//			print_array(pair_node->value_node.array, indent + 1);
+//		}
 	}
 }
 
@@ -352,13 +410,13 @@ void print_ast(AST* ast) {
 	
 	AST_Node* current_node = ast->root;
 	Print_Data root_data{.str = current_node->name.c_str()};
-	pretty_print(indent, Print_Type::STRING, root_data);
+//	pretty_print(indent, Print_Type::STRING, root_data);
 	indent++;
+	print_object(ast->root, indent);
 	
-	print_object(current_node, indent);
+//	print_object(current_node, indent);
 	
 	printf("END AST\n\n");
-	
 }
 
 void lex(Parser* parser) {
@@ -378,7 +436,7 @@ Json_Data* parse(std::string str) {
 	return json_data;
 }
 
-const std::string& load_json_from_file(const std::string& file_name) {
+const std::string load_json_from_file(const std::string& file_name) {
 	std::ifstream json_test_file(file_name);
 	std::string json_test_str;
 	if (!json_test_file.is_open()) {
