@@ -180,16 +180,24 @@ AST* create_ast(std::vector<Token>& tokens) {
 					value_node.type = Value_Type::NUMBER;
 					value_node.value = std::get<float>(current_token.value);
 					current_array->push_back(value_node);
+					break;
 				case Token_Type::BOOL:
 					value_node.type = Value_Type::BOOL;
 					value_node.value = std::get<bool>(current_token.value);
 					current_array->push_back(value_node);
+					break;
 				case Token_Type::CLOSED_SQUARE_BRACKET:
 //					assert(false);
+					break;
 				case Token_Type::OPEN_SQUARE_BRACKET:
+//					value_node.type = Value_Type::ARRAY;
+//					current_array->push_back(value_node);
+//					current_array = &std::get<std::vector<AST_Value_Node>>(current_pair_node->value_node.value);
 					value_node.type = Value_Type::ARRAY;
+					value_node.value = std::vector<AST_Value_Node>{};
 					current_array->push_back(value_node);
-					current_array = &std::get<std::vector<AST_Value_Node>>(current_pair_node->value_node.value);;
+					current_array = &std::get<std::vector<AST_Value_Node>>(current_array->back().value);
+					break;
 				default:
 					break;
 			}
