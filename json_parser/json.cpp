@@ -20,7 +20,7 @@ void consume(Parser* parser) {
 		parser->tokens.push_back(token);
 	} else if (c == '{') { // left bracket token
 		Token token;
-		token.type = Token_Type::OPEN_BRACKET;
+		token.type = Token_Type::OPEN_CURLY_BRACKET;
 		parser->tokens.push_back(token);
 		parser->index++;
 	} else if (c == ':') {
@@ -28,9 +28,27 @@ void consume(Parser* parser) {
 		token.type = Token_Type::COLON;
 		parser->tokens.push_back(token);
 		parser->index++;
+	} else if (c == '[') {
+		// start of array of items
+		Token token;
+		token.type = Token_Type::OPEN_SQUARE_BRACKET;
+		parser->tokens.push_back(token);
+		parser->index++;
+	} else if (c == ']') {
+		// end of array of items
+		Token token;
+		token.type = Token_Type::CLOSED_SQUARE_BRACKET;
+		parser->tokens.push_back(token);
+		parser->index++;
+	} else if (c == '}') {
+		// handle end of object, do we actually need to do anything here?
+//		assert(false);
+		Token token;
+		token.type = Token_Type::CLOSED_CURLY_BRACKET;
+		parser->tokens.push_back(token);
+		parser->index++;
 	} else if (c == '"') { // name/decl token or string value token
 		Token token;
-//		token.type = STRING;
 		
 		std::string str;
 		unsigned int p_index = parser->index + 1;
@@ -135,73 +153,123 @@ AST* create_ast(std::vector<Token>& tokens) {
 	
 	AST_Node* current_node = nullptr;
 	AST_Pair_Node* current_pair_node = nullptr;
+	bool in_array = false;
+//	AST_Node* current_array_node = nullptr;
 	
 	while (current_token.type != Token_Type::END_OF_FILE) {
 		
-		if (current_token.type == Token_Type::OPEN_BRACKET) { // object node
+		if (in_array) {
+			AST_Value_Node value_node;
 			
-			// setup root node
-			if (!current_node) {
-				AST_Node* root_node = new AST_Node;
-				root_node->type = AST_Node_Type::OBJECT;
-				root_node->name = "ROOT";
-				ast->root = root_node;
-				current_node = root_node;
-			} else {
-				AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
-				
-//				AST_Node* node = new AST_Node;
-				pair_node->value_node.type = Value_Type::OBJECT;
-				
-				AST_Node* new_object_node = new AST_Node;
-				new_object_node->type = AST_Node_Type::OBJECT;
-				new_object_node->name = pair_node->key;
-				new_object_node->parent = current_node;
-				pair_node->value_node.object = new_object_node;
-				
-	//			current_node->children.push_back(node);
-				current_node = new_object_node;
+			switch (current_token.type) {
+				case Token_Type::STRING_VALUE:
+					value_node.type = Value_Type::STRING;
+					value_node.str = current_token.str;
+					current_pair_node->value_node.array.push_back(value_node);
+					break;
+				case Token_Type::NUMBER:
+					value_node.type = Value_Type::NUMBER;
+					value_node.number = current_token.number;
+					current_pair_node->value_node.array.push_back(value_node);
+				case Token_Type::BOOL:
+					value_node.type = Value_Type::BOOL;
+					value_node.bool_val = current_token.bool_val;
+					current_pair_node->value_node.array.push_back(value_node);
+				default:
+					break;
 			}
 			
 			
-		} else if (current_token.type == Token_Type::NAME) { // name node
-			if (current_node->type != AST_Node_Type::OBJECT) assert(false);
-			
-			AST_Pair_Node* pair_node = new AST_Pair_Node;
-			pair_node->key = current_token.str;
-			pair_node->parent = current_node;
-			current_node->properties.push_back(pair_node);
-		} else if (current_token.type == Token_Type::STRING_VALUE) {
-			if (current_node->type != AST_Node_Type::OBJECT) assert(false);
-			
-			AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
-			
-			AST_Value_Node value_node;
-			value_node.type = Value_Type::STRING;
-			value_node.str = current_token.str;
-			
-			pair_node->value_node = value_node;
-		} else if (current_token.type == Token_Type::NUMBER) {
-			if (current_node->type != AST_Node_Type::OBJECT) assert(false);
-			
-			AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
-			
-			AST_Value_Node value_node;
-			value_node.type = Value_Type::NUMBER;
-			value_node.number = current_token.number;
-			
-			pair_node->value_node = value_node;
-		} else if (current_token.type == Token_Type::BOOL) {
-			if (current_node->type != AST_Node_Type::OBJECT) assert(false);
-			
-			AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
-			
-			AST_Value_Node value_node;
-			value_node.type = Value_Type::BOOL;
-			value_node.bool_val = current_token.bool_val;
-			
-			pair_node->value_node = value_node;
+		} else {
+			if (current_token.type == Token_Type::OPEN_CURLY_BRACKET) { // object node
+				
+				// setup root node
+				if (!current_node) {
+					AST_Node* root_node = new AST_Node;
+					root_node->type = AST_Node_Type::OBJECT;
+					root_node->name = "ROOT";
+					ast->root = root_node;
+					current_node = root_node;
+				} else {
+					AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
+					pair_node->value_node.type = Value_Type::OBJECT;
+					current_pair_node = pair_node;
+					
+					AST_Node* new_object_node = new AST_Node;
+					new_object_node->type = AST_Node_Type::OBJECT;
+					new_object_node->name = pair_node->key;
+					new_object_node->parent = current_node;
+					pair_node->value_node.object = new_object_node;
+					
+		//			current_node->children.push_back(node);
+					current_node = new_object_node;
+				}
+				
+				
+			} else if (current_token.type == Token_Type::NAME) { // name node
+				if (current_node->type != AST_Node_Type::OBJECT) assert(false);
+				
+				AST_Pair_Node* pair_node = new AST_Pair_Node;
+				pair_node->key = current_token.str;
+				pair_node->parent = current_node;
+				current_node->properties.push_back(pair_node);
+				current_pair_node = pair_node;
+			} else if (current_token.type == Token_Type::STRING_VALUE) {
+				if (current_node->type != AST_Node_Type::OBJECT) assert(false);
+				
+				AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
+				
+				AST_Value_Node value_node;
+				value_node.type = Value_Type::STRING;
+				value_node.str = current_token.str;
+				
+				pair_node->value_node = value_node;
+			} else if (current_token.type == Token_Type::NUMBER) {
+				if (current_node->type != AST_Node_Type::OBJECT) assert(false);
+				
+				AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
+				
+				AST_Value_Node value_node;
+				value_node.type = Value_Type::NUMBER;
+				value_node.number = current_token.number;
+				
+				pair_node->value_node = value_node;
+			} else if (current_token.type == Token_Type::BOOL) {
+				if (current_node->type != AST_Node_Type::OBJECT) assert(false);
+				
+				AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
+				
+				AST_Value_Node value_node;
+				value_node.type = Value_Type::BOOL;
+				value_node.bool_val = current_token.bool_val;
+				
+				pair_node->value_node = value_node;
+			} else if (current_token.type == Token_Type::OPEN_SQUARE_BRACKET) {
+				in_array = true;
+	//			AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
+	//			pair_node->value_node.type = Value_Type::ARRAY;
+	////			node->type = AST_Node_Type::ar
+	//			assert(false);
+			} else if (current_token.type == Token_Type::CLOSED_SQUARE_BRACKET) {
+				in_array = false;
+			} else if (current_token.type == Token_Type::CLOSED_CURLY_BRACKET) {
+				// end of object, set the parent as the current node
+				if (current_node->parent) {
+					current_node = current_node->parent;
+				} else {
+					if (current_node->name.compare("ROOT") != 0) {
+						// every time we close an object it should have a parent that we revert to unless its the ROOT
+						assert(false);
+					}
+				}
+			} else if (current_token.type == Token_Type::COLON) {
+	//			assert(false);
+			} else {
+				assert(false); // we should not reach this point, if we do it means wh have a token type that we are not checking
+			}
 		}
+		
+		
 		
 		token_index++;
 		current_token = tokens[token_index];

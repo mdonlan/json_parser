@@ -12,12 +12,15 @@
 #include <vector>
 
 enum class Token_Type {
-	OPEN_BRACKET,
+	OPEN_CURLY_BRACKET,
+	CLOSED_CURLY_BRACKET,
 	STRING_VALUE,
 	NAME,
 	NUMBER,
 	BOOL,
 	COLON,
+	OPEN_SQUARE_BRACKET,
+	CLOSED_SQUARE_BRACKET,
 	END_OF_FILE
 };
 
@@ -57,7 +60,7 @@ struct AST_Node {
 	std::string name;
 //	AST_Node* left;
 //	AST_Node* right;
-	std::vector<AST_Node*> children;
+	std::vector<AST_Node*> array_members;
 	std::vector<AST_Pair_Node*> properties;
 	AST_Node* parent;
 };
@@ -66,7 +69,8 @@ enum class Value_Type {
 	NUMBER,
 	STRING,
 	BOOL,
-	OBJECT
+	OBJECT,
+	ARRAY
 };
 
 struct AST_Value_Node {
@@ -75,6 +79,7 @@ struct AST_Value_Node {
 	float number = 0.0f;
 	bool bool_val = false;
 	AST_Node* object;
+	std::vector<AST_Value_Node> array;
 };
 
 struct AST_Pair_Node {

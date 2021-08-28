@@ -35,8 +35,6 @@ int main(int argc, const char * argv[]) {
 	
 	print_ast(json_data->ast);
 	
-//	do_tests();
-	
-	int result = Catch::Session().run( argc, argv );
+	int result = Catch::Session().run(argc, argv);
 	return result;
 }

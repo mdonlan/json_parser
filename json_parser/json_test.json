@@ -6,5 +6,6 @@
 	"test_bool": true,
 	"test_obj": {
 		"blah": 5
-	}
+	},
+	"test_array": [ "blah", "foo", "what" ]
 }
