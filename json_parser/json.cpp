@@ -252,6 +252,7 @@ AST* create_ast(std::vector<Token>& tokens) {
 				pair_node->value_node = value_node;
 			} else if (current_token.type == Token_Type::OPEN_SQUARE_BRACKET) {
 				in_array = true;
+				current_pair_node->value_node.type = Value_Type::ARRAY;
 	//			AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
 	//			pair_node->value_node.type = Value_Type::ARRAY;
 	////			node->type = AST_Node_Type::ar
@@ -284,6 +285,20 @@ AST* create_ast(std::vector<Token>& tokens) {
 	return ast;
 }
 
+void print_array(std::vector<AST_Value_Node> array, int indent) {
+	printf(" [\n");
+	for (AST_Value_Node node : array) {
+		if (node.type == Value_Type::NUMBER) {
+			Print_Data data{.number = node.number};
+			pretty_print(indent, Print_Type::NUMBER, data);
+		} else if (node.type == Value_Type::STRING) {
+			Print_Data data{.str = node.str};
+			pretty_print(indent, Print_Type::STRING, data);
+		}
+	}
+	Print_Data data{.str = "]"};
+	pretty_print(indent - 1, Print_Type::STRING, data);
+}
 
 
 void pretty_print(int indent, Print_Type type, Print_Data data, bool new_line) {
@@ -325,6 +340,8 @@ void print_object(AST_Node* node, int indent) {
 			pretty_print(indent, Print_Type::BOOL, data);
 		} else if (pair_node->value_node.type == Value_Type::OBJECT) {
 			print_object(pair_node->value_node.object, indent);
+		} else if (pair_node->value_node.type == Value_Type::ARRAY) {
+			print_array(pair_node->value_node.array, indent + 1);
 		}
 	}
 }
@@ -340,26 +357,7 @@ void print_ast(AST* ast) {
 	
 	print_object(current_node, indent);
 	
-//	for (AST_Pair_Node* pair_node : current_node->properties) {
-//		Print_Data key_data{.str = pair_node->key.c_str()};
-//		pretty_print(indent, Print_Type::STRING, key_data, false);
-//
-//		if (pair_node->value_node.type == Value_Type::NUMBER) {
-//			Print_Data data{.number = pair_node->value_node.number};
-//			pretty_print(indent, Print_Type::NUMBER, data);
-//		} else if (pair_node->value_node.type == Value_Type::STRING) {
-//			Print_Data data{.str = pair_node->value_node.str};
-//			pretty_print(indent, Print_Type::STRING, data);
-//		} else if (pair_node->value_node.type == Value_Type::BOOL) {
-//			Print_Data data{.bool_val = pair_node->value_node.bool_val};
-//			pretty_print(indent, Print_Type::BOOL, data);
-//		} else if (pair_node->value_node.type == Value_Type::OBJECT) {
-//			current_node = pair_node->value_node.object;
-//		}
-//	}
-	
 	printf("END AST\n\n");
-	
 	
 }
 
