@@ -160,13 +160,13 @@ AST* create_ast(std::vector<Token>& tokens) {
 	AST_Node* current_node = nullptr;
 	AST_Pair_Node* current_pair_node = nullptr;
 //	bool in_array = false;
-	std::vector<AST_Value_Node>* current_array;
+//	std::vector<AST_Value_Node>* current_array;
 //	AST_Node* current_array_node = nullptr;
 	
 	while (current_token.type != Token_Type::END_OF_FILE) {
 		
 		// handle arrays
-		if (current_node && current_node->in_array) {
+		if (current_node && current_node->type == AST_Node_Type::ARRAY) {
 			AST_Value_Node value_node;
 //			current_array = std::get<std::vector<AST_Value_Node>>(current_pair_node->value_node.value);
 			
@@ -174,37 +174,54 @@ AST* create_ast(std::vector<Token>& tokens) {
 				case Token_Type::STRING_VALUE:
 					value_node.type = Value_Type::STRING;
 					value_node.value = std::get<std::string>(current_token.value);
-					current_array->push_back(value_node);
+					current_node->array.push_back(value_node);
 					break;
 				case Token_Type::NUMBER:
 					value_node.type = Value_Type::NUMBER;
 					value_node.value = std::get<float>(current_token.value);
-					current_array->push_back(value_node);
+					current_node->array.push_back(value_node);
 					break;
 				case Token_Type::BOOL:
 					value_node.type = Value_Type::BOOL;
 					value_node.value = std::get<bool>(current_token.value);
-					current_array->push_back(value_node);
+					current_node->array.push_back(value_node);
 					break;
 				case Token_Type::CLOSED_SQUARE_BRACKET:
+					current_node = current_node->parent;
 //					assert(false);
-					current_node->array_nest_level--;
-					assert(current_node->array_nest_level >= 0);
-					if (current_node == 0) {
-						current_node->in_array = false;
-					}
+//					current_node->array_nest_level--;
+//					assert(current_node->array_nest_level >= 0);
+//					if (current_node == 0) {
+//						current_node->in_array = false;
+//					}
 //					current_node->in_array = false;
 					break;
-				case Token_Type::OPEN_SQUARE_BRACKET:
+				case Token_Type::OPEN_SQUARE_BRACKET: {
 //					value_node.type = Value_Type::ARRAY;
 //					current_array->push_back(value_node);
 //					current_array = &std::get<std::vector<AST_Value_Node>>(current_pair_node->value_node.value);
-					current_node->array_nest_level++;
+					AST_Node* new_array_node = new AST_Node;
+					new_array_node->type = AST_Node_Type::ARRAY;
+					new_array_node->name = "ARRAY";
+					new_array_node->parent = current_node;
+					
 					value_node.type = Value_Type::ARRAY;
-					value_node.value = std::vector<AST_Value_Node>{};
-					current_array->push_back(value_node);
-					current_array = &std::get<std::vector<AST_Value_Node>>(current_array->back().value);
+					value_node.value = new_array_node;
+					
+					
+					// since we are in array section push as new item in array
+					assert(current_node->type == AST_Node_Type::ARRAY);
+					current_node->array.push_back(value_node);
+					
+					current_node = new_array_node;
+					
+//					current_node->array_nest_level++;
+//					value_node.type = Value_Type::ARRAY;
+//					value_node.value = std::vector<AST_Value_Node>{};
+//					current_array->push_back(value_node);
+//					current_array = &std::get<std::vector<AST_Value_Node>>(current_array->back().value);
 					break;
+				}
 				case Token_Type::OPEN_CURLY_BRACKET: {
 					AST_Node* new_object_node = new AST_Node;
 					new_object_node->type = AST_Node_Type::OBJECT;
@@ -213,11 +230,13 @@ AST* create_ast(std::vector<Token>& tokens) {
 //					pair_node->value_node.value = new_object_node;
 					
 		//			current_node->children.push_back(node);
-					current_node = new_object_node;
+					
 					
 					value_node.type = Value_Type::OBJECT;
 					value_node.value = new_object_node;
-					current_array->push_back(value_node);
+					current_node->array.push_back(value_node);
+					
+					current_node = new_object_node;
 //					AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
 //					pair_node->value_node.type = Value_Type::OBJECT;
 //					current_pair_node = pair_node;
@@ -293,11 +312,23 @@ AST* create_ast(std::vector<Token>& tokens) {
 				
 				pair_node->value_node = value_node;
 			} else if (current_token.type == Token_Type::OPEN_SQUARE_BRACKET) {
-				current_node->in_array = true;
-				current_node->array_nest_level++;
+				
+				AST_Node* new_array_node = new AST_Node;
+				new_array_node->type = AST_Node_Type::ARRAY;
+				new_array_node->name = "ARRAY";
+				new_array_node->parent = current_node;
+				
+//				value_node.type = Value_Type::OBJECT;
+//				value_node.value = new_array_node;
+				
+				
+//				current_node->in_array = true;
+//				current_node->array_nest_level++;
 				current_pair_node->value_node.type = Value_Type::ARRAY;
-				current_pair_node->value_node.value = std::vector<AST_Value_Node>{};
-				current_array = &std::get<std::vector<AST_Value_Node>>(current_pair_node->value_node.value);
+				current_pair_node->value_node.value = new_array_node;
+				
+				current_node = new_array_node;
+//				current_array = &std::get<std::vector<AST_Value_Node>>(current_pair_node->value_node.value);
 	//			AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
 	//			pair_node->value_node.type = Value_Type::ARRAY;
 	////			node->type = AST_Node_Type::ar
@@ -520,3 +551,51 @@ AST_Value_Node Json_Data::operator[](std::string key) {
 	return value_node;
 }
 
+// use this overload to access data withing a AST_Value_Node object
+// check for keys that match the string and return their value node
+AST_Value_Node AST_Value_Node::operator[](std::string key) {
+	AST_Value_Node value_node;
+	
+	if (this->type == Value_Type::ARRAY) {
+		
+	} else {
+		assert(false);
+	}
+	
+	int a = 0;
+	
+	return value_node;
+//	AST_Value_Node value_node;
+//	//find key
+//	bool searching_for_key = true;
+//	AST_Node* current_node = this->ast->root;
+//	int attempts = 0;
+//	int max_attempts = 100;
+//	while (searching_for_key) {
+//		for (AST_Pair_Node* pair_node : current_node->properties) {
+//			if (pair_node->key.compare(key) == 0) {
+//				value_node = pair_node->value_node;
+//				searching_for_key = false;
+//			}
+//		}
+//		attempts++;
+//		if (attempts > max_attempts) searching_for_key = false;
+//	}
+//
+//	return value_node;
+}
+
+AST_Value_Node AST_Value_Node::operator[](int i) {
+	if (this->type == Value_Type::ARRAY) {
+		assert(false);
+	} else if (this->type == Value_Type::OBJECT) {
+		assert(false);
+	} else if (this->type == Value_Type::NUMBER){
+		AST_Value_Node value_node;
+		value_node.type = Value_Type::ERROR;
+		return value_node;
+	}
+	
+	V_Node_List list = std::get<V_Node_List>(this->value);
+	return list[i];
+}

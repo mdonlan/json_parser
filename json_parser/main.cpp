@@ -17,30 +17,22 @@
 
 int main(int argc, const char * argv[]) {
 	
-//	std::string json_str = R"(
-//		{
-//			"userId": 1,
-//			"id": 1,
-//			"title": "delectus aut autem",
-//			"completed": false,
-//			"test_bool": true,
-//			"test_obj": {
-//				"blah": 5
-//			}
-//		}
-//	)";
+	std::string json_str = R"(
+		{
+			"test": [
+				1, 2, 3
+			]
+		}
+	)";
 	
-	const std::string& json_str = load_json_from_file("json_test.json");
+//	const std::string& json_str = load_json_from_file("ship_test.json");
 	Json_Data json_data = parse(json_str);
 	
-//	AST_Value_Node* value_node = json_data["id"];
-	AST_Value_Node value = json_data["id"];
-	int a = 0;
+	AST_Value_Node value = json_data["name"];
+	AST_Value_Node tiles = json_data["tiles"][1];
 	
-//	Json_Data blah;
-//	blah["id"];
+//	print_ast(json_data.ast);
 	
-	print_ast(json_data.ast);
 	
 	int result = Catch::Session().run(argc, argv);
 	return result;

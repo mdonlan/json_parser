@@ -56,31 +56,25 @@ struct Parser {
 };
 
 enum class AST_Node_Type {
-	ROOT,
+//	ROOT,
 	OBJECT,
-	NAME
+	ARRAY
+//	NAME
 };
 
 struct AST_Pair_Node;
 
-struct AST_Node {
-	AST_Node_Type type;
-	std::string name;
-	std::vector<AST_Pair_Node*> properties;
-	AST_Node* parent;
-	
-	
-	bool in_array = false;
-	int array_nest_level = 0;
-};
 
 enum class Value_Type {
 	NUMBER,
 	STRING,
 	BOOL,
 	OBJECT,
-	ARRAY
+	ARRAY,
+	ERROR
 };
+
+struct AST_Node;
 
 struct AST_Value_Node {
 	Value_Type type;
@@ -91,7 +85,26 @@ struct AST_Value_Node {
 //	std::vector<AST_Value_Node> array;
 	
 	std::variant<std::string, float, bool, AST_Node*, std::vector<AST_Value_Node>> value;
+	
+	AST_Value_Node operator[](std::string key);
+	AST_Value_Node operator[](int i);
 };
+
+struct AST_Node {
+	AST_Node_Type type;
+	std::string name;
+	std::vector<AST_Pair_Node*> properties;
+	std::vector<AST_Value_Node> array;
+	AST_Node* parent;
+	
+	
+	bool in_array = false;
+	int array_nest_level = 0;
+};
+
+
+//std::vector<AST_Value_Node>
+typedef std::vector<AST_Value_Node> V_Node_List;
 
 struct AST_Pair_Node {
 //	AST_Node_Type type;
