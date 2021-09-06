@@ -558,8 +558,13 @@ AST_Value_Node AST_Value_Node::operator[](std::string key) {
 	
 	if (this->type == Value_Type::ARRAY) {
 		
-	} else {
-		assert(false);
+	} else if (this->type == Value_Type::OBJECT) {
+		auto node = std::get<AST_Node*>(this->value);
+		for (AST_Pair_Node* pair_node : node->properties) {
+			if (pair_node->key.compare(key) == 0) {
+				return pair_node->value_node;
+			}
+		}
 	}
 	
 	int a = 0;
@@ -587,6 +592,7 @@ AST_Value_Node AST_Value_Node::operator[](std::string key) {
 
 AST_Value_Node AST_Value_Node::operator[](int i) {
 	if (this->type == Value_Type::ARRAY) {
+		return std::get<AST_Node*>(this->value)->array[i];
 		assert(false);
 	} else if (this->type == Value_Type::OBJECT) {
 		assert(false);
@@ -598,4 +604,26 @@ AST_Value_Node AST_Value_Node::operator[](int i) {
 	
 	V_Node_List list = std::get<V_Node_List>(this->value);
 	return list[i];
+}
+
+std::string get_string(AST_Value_Node value_node) {
+	return std::get<std::string>(value_node.value);
+}
+
+float get_number(AST_Value_Node value_node) {
+	return std::get<float>(value_node.value);
+}
+
+std::vector<AST_Value_Node> get_array(AST_Value_Node value_node) {
+	AST_Node* array_node = std::get<AST_Node*>(value_node.value);
+	return array_node->array;
+}
+
+std::vector<AST_Pair_Node*> get_object(AST_Value_Node value_node) {
+	AST_Node* obj_node = std::get<AST_Node*>(value_node.value);
+	return obj_node->properties;
+}
+
+bool get_bool(AST_Value_Node value_node) {
+	return std::get<bool>(value_node.value);
 }

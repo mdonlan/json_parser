@@ -10,31 +10,6 @@
 #include "Tests.h"
 #include "catch.hpp"
 
-void do_tests() {
-	printf("\n\nRunning Tests...\n");
-	
-//	Parser* parser = new Parser;
-	
-	Json_Data json_data = parse(std::string{R"({"key": "value"}})"});
-	
-	AST_Node* root_node = json_data.ast->root;
-//	assert(root_node);
-	
-//	Assert_True(root_node, "Root Node Exists");
-//	Assert_Equal(root_node->name.c_str(), "ROOT", "Root Node Name is Root");
-//	Assert_Equal(root_node->properties[0]->key, "key", "Key Value Matches");
-//
-//
-//	parser = new Parser;
-//	json_data = parse(parser, std::string{R"({ "blah": "value", "key2": "value2", "key3": "value3" }})"});
-//	root_node = json_data->ast->root;
-//
-//	Assert_Equal(root_node->properties.size(), 3, "Property Size");
-//	Assert_Equal(root_node->properties[2]->value_node.type, Value_Type::NUMBER, "Value Type for Number is Number");
-	
-	printf("\n\n\n");
-	
-}
 
 TEST_CASE( "\nBasic Test\n", "[basic]" ) {
 	Json_Data json_data = parse(load_json_from_file("json_test.json"));
@@ -108,48 +83,49 @@ TEST_CASE("OBJECT IN ARRAY") {
 	REQUIRE(object->properties[0]->value_node.type == Value_Type::STRING);
 	REQUIRE(std::get<std::string>(object->properties[0]->value_node.value).compare("object_1") == 0);
 }
-//
-//TEST_CASE("COMPLEX") {
-//	Json_Data json_data = parse(std::string{R"(
-//		{
-//			"name": "json_test_ship",
-//			"tiles": [
-//				{
-//					"x": 0,
-//					"y": 0,
-//					"room": 0,
-//					"walls": {
-//						"left": false,
-//						"right": true,
-//						"top": false,
-//						"bot": true
-//					}
-//				},
-//				{
-//					"x": 1,
-//					"y": 0,
-//					"room": 0,
-//					"walls": {
-//						"left": false,
-//						"right": true,
-//						"top": false,
-//						"bot": true
-//					}
-//				},
-//			],
-//			"rooms": [
-//				{
-//					"id": 0,
-//					"has_system": true,
-//					"system_name": "shields"
-//				}
-//			]
-//		}
-//	)"});
-//
-//	AST_Node* root_node = json_data.ast->root;
-//
-//	REQUIRE(root_node != nullptr);
-//	REQUIRE(root_node->name.compare("ROOT") == 0);
-//	REQUIRE(root_node->properties.size() == 3);
-//}
+
+TEST_CASE("COMPLEX") {
+	Json_Data json_data = parse(std::string{R"(
+		{
+			"name": "json_test_ship",
+			"tiles": [
+				{
+					"x": 0,
+					"y": 0,
+					"room": 0,
+					"walls": {
+						"left": false,
+						"right": true,
+						"top": false,
+						"bot": true
+					}
+				},
+				{
+					"x": 1,
+					"y": 0,
+					"room": 0,
+					"walls": {
+						"left": false,
+						"right": true,
+						"top": false,
+						"bot": true
+					}
+				},
+			],
+			"rooms": [
+				{
+					"id": 0,
+					"has_system": true,
+					"system_name": "shields"
+				}
+			]
+		}
+	)"});
+
+	AST_Node* root_node = json_data.ast->root;
+
+	REQUIRE(root_node != nullptr);
+	REQUIRE(root_node->name.compare("ROOT") == 0);
+	REQUIRE(root_node->properties.size() == 3);
+//	REQUIRE(json_data["name"].value.as_string())
+}

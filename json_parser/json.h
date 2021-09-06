@@ -27,25 +27,8 @@ enum class Token_Type {
 
 struct Token {
 	Token_Type type;
-	
-	std::variant <
-		std::string,
-		float,
-		bool,
-		char
-	> value;
-	
-//	std::string str;
-//	float number = 0.0f;
-//	bool bool_val = false;
-	
-//	union {
-//		float _number;
-//		char* _str;
-//		bool _bool_val;
-//	};
+	std::variant<std::string, float, bool, char> value;
 };
-
 
 struct Parser {
 	unsigned int index;
@@ -56,14 +39,11 @@ struct Parser {
 };
 
 enum class AST_Node_Type {
-//	ROOT,
 	OBJECT,
 	ARRAY
-//	NAME
 };
 
 struct AST_Pair_Node;
-
 
 enum class Value_Type {
 	NUMBER,
@@ -76,14 +56,9 @@ enum class Value_Type {
 
 struct AST_Node;
 
+
 struct AST_Value_Node {
 	Value_Type type;
-//	std::string str;
-//	float number = 0.0f;
-//	bool bool_val = false;
-//	AST_Node* object;
-//	std::vector<AST_Value_Node> array;
-	
 	std::variant<std::string, float, bool, AST_Node*, std::vector<AST_Value_Node>> value;
 	
 	AST_Value_Node operator[](std::string key);
@@ -96,18 +71,12 @@ struct AST_Node {
 	std::vector<AST_Pair_Node*> properties;
 	std::vector<AST_Value_Node> array;
 	AST_Node* parent;
-	
-	
-	bool in_array = false;
-	int array_nest_level = 0;
 };
 
-
-//std::vector<AST_Value_Node>
 typedef std::vector<AST_Value_Node> V_Node_List;
 
+// should we replace this w/ a map???
 struct AST_Pair_Node {
-//	AST_Node_Type type;
 	std::string key;
 	AST_Value_Node value_node;
 	AST_Node* parent;
@@ -154,5 +123,13 @@ void print_ast(AST* ast);
 void print_object(AST_Node* node, int indent);
 void print_array(std::vector<AST_Value_Node> array, int indent);
 void print_value(AST_Value_Node value_node, int indent = 0);
+
+std::string get_string(AST_Value_Node value_node);
+float get_number(AST_Value_Node value_node);
+std::vector<AST_Value_Node> get_array(AST_Value_Node value_node);
+std::vector<AST_Pair_Node*> get_object(AST_Value_Node value_node);
+bool get_bool(AST_Value_Node value_node);
+
+
 
 #endif /* json_h */
