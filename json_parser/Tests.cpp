@@ -93,6 +93,34 @@ TEST_CASE("ARRAY TESTS") {
 	
 }
 
+TEST_CASE("OBJECT IN ARRAY") {
+	Json_Data json_data = parse(std::string{R"(
+		{
+			"object_in_arr": [
+				{
+					"name": "object_1"
+				}
+			]
+		}
+	)"});
+	
+	AST_Node* root_node = json_data.ast->root;
+	
+	REQUIRE(root_node != nullptr);
+	REQUIRE(root_node->name.compare("ROOT") == 0);
+	REQUIRE(root_node->properties.size() == 1);
+
+	AST_Pair_Node* pair_node = root_node->properties[0];
+	REQUIRE(pair_node->key.compare("object_in_arr") == 0);
+	REQUIRE(pair_node->value_node.type == Value_Type::ARRAY);
+	REQUIRE(std::get<std::vector<AST_Value_Node>>(pair_node->value_node.value).size() == 1);
+
+	std::vector<AST_Value_Node>& current_array = std::get<std::vector<AST_Value_Node>>(pair_node->value_node.value);
+	REQUIRE(current_array[0].type == Value_Type::OBJECT);
+//	REQUIRE(std::get<std::vector<AST_Value_Node>>(current_array[0].value).size() == 0);
+}
+
+
 
 
 //void Assert_True(void* ptr, const std::string& str) {

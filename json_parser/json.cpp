@@ -159,14 +159,14 @@ AST* create_ast(std::vector<Token>& tokens) {
 	
 	AST_Node* current_node = nullptr;
 	AST_Pair_Node* current_pair_node = nullptr;
-	bool in_array = false;
+//	bool in_array = false;
 	std::vector<AST_Value_Node>* current_array;
 //	AST_Node* current_array_node = nullptr;
 	
 	while (current_token.type != Token_Type::END_OF_FILE) {
 		
 		// handle arrays
-		if (in_array) {
+		if (current_node && current_node->in_array) {
 			AST_Value_Node value_node;
 //			current_array = std::get<std::vector<AST_Value_Node>>(current_pair_node->value_node.value);
 			
@@ -188,16 +188,41 @@ AST* create_ast(std::vector<Token>& tokens) {
 					break;
 				case Token_Type::CLOSED_SQUARE_BRACKET:
 //					assert(false);
+					current_node->array_nest_level--;
+					assert(current_node->array_nest_level >= 0);
+					if (current_node == 0) {
+						current_node->in_array = false;
+					}
+//					current_node->in_array = false;
 					break;
 				case Token_Type::OPEN_SQUARE_BRACKET:
 //					value_node.type = Value_Type::ARRAY;
 //					current_array->push_back(value_node);
 //					current_array = &std::get<std::vector<AST_Value_Node>>(current_pair_node->value_node.value);
+					current_node->array_nest_level++;
 					value_node.type = Value_Type::ARRAY;
 					value_node.value = std::vector<AST_Value_Node>{};
 					current_array->push_back(value_node);
 					current_array = &std::get<std::vector<AST_Value_Node>>(current_array->back().value);
 					break;
+				case Token_Type::OPEN_CURLY_BRACKET: {
+					AST_Node* new_object_node = new AST_Node;
+					new_object_node->type = AST_Node_Type::OBJECT;
+					new_object_node->name = "UNNAMED";
+					new_object_node->parent = current_node;
+//					pair_node->value_node.value = new_object_node;
+					
+		//			current_node->children.push_back(node);
+					current_node = new_object_node;
+					
+					value_node.type = Value_Type::OBJECT;
+					value_node.value = new_object_node;
+					current_array->push_back(value_node);
+//					AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
+//					pair_node->value_node.type = Value_Type::OBJECT;
+//					current_pair_node = pair_node;
+					break;
+				}
 				default:
 					break;
 			}
@@ -268,7 +293,8 @@ AST* create_ast(std::vector<Token>& tokens) {
 				
 				pair_node->value_node = value_node;
 			} else if (current_token.type == Token_Type::OPEN_SQUARE_BRACKET) {
-				in_array = true;
+				current_node->in_array = true;
+				current_node->array_nest_level++;
 				current_pair_node->value_node.type = Value_Type::ARRAY;
 				current_pair_node->value_node.value = std::vector<AST_Value_Node>{};
 				current_array = &std::get<std::vector<AST_Value_Node>>(current_pair_node->value_node.value);

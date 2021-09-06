@@ -66,11 +66,12 @@ struct AST_Pair_Node;
 struct AST_Node {
 	AST_Node_Type type;
 	std::string name;
-//	AST_Node* left;
-//	AST_Node* right;
-//	std::vector<AST_Node*> array_members;
 	std::vector<AST_Pair_Node*> properties;
 	AST_Node* parent;
+	
+	
+	bool in_array = false;
+	int array_nest_level = 0;
 };
 
 enum class Value_Type {
