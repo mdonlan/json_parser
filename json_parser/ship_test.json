@@ -1,0 +1,35 @@
+{
+	"name": "json_test_ship",
+	"tiles": [
+		{
+			"x": 0,
+			"y": 0,
+			"room": 0,
+			"walls": {
+				"left": false,
+				"right": true,
+				"top": false,
+				"bot": true
+			}
+		},
+		{
+			"x": 0,
+			"y": 0,
+			"room": 0,
+			"walls": {
+				"left": false,
+				"right": true,
+				"top": false,
+				"bot": true
+			}
+		},
+	],
+	"rooms": [
+		{
+			"id": 0,
+			"has_system": true,
+			"system_name": "shields"
+		}
+	]
+}
+

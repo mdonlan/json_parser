@@ -15,9 +15,9 @@ void do_tests() {
 	
 //	Parser* parser = new Parser;
 	
-	Json_Data* json_data = parse(std::string{R"({"key": "value"}})"});
+	Json_Data json_data = parse(std::string{R"({"key": "value"}})"});
 	
-	AST_Node* root_node = json_data->ast->root;
+	AST_Node* root_node = json_data.ast->root;
 //	assert(root_node);
 	
 //	Assert_True(root_node, "Root Node Exists");
@@ -37,8 +37,8 @@ void do_tests() {
 }
 
 TEST_CASE( "\nBasic Test\n", "[basic]" ) {
-	Json_Data* json_data = parse(load_json_from_file("json_test.json"));
-	AST_Node* root_node = json_data->ast->root;
+	Json_Data json_data = parse(load_json_from_file("json_test.json"));
+	AST_Node* root_node = json_data.ast->root;
 	
 	REQUIRE(root_node != nullptr);
 	REQUIRE(root_node->name.compare("ROOT") == 0);
@@ -60,13 +60,13 @@ TEST_CASE( "\nBasic Test\n", "[basic]" ) {
 }
 
 TEST_CASE("ARRAY TESTS") {
-	Json_Data* json_data = parse(std::string{R"(
+	Json_Data json_data = parse(std::string{R"(
 		{
 			"nested_array": [[]]
 		}
 	)"});
 	
-	AST_Node* root_node = json_data->ast->root;
+	AST_Node* root_node = json_data.ast->root;
 	
 	REQUIRE(root_node != nullptr);
 	REQUIRE(root_node->name.compare("ROOT") == 0);

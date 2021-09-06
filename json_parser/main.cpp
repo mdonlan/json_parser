@@ -31,9 +31,16 @@ int main(int argc, const char * argv[]) {
 //	)";
 	
 	const std::string& json_str = load_json_from_file("json_test.json");
-	Json_Data* json_data = parse(json_str);
+	Json_Data json_data = parse(json_str);
 	
-	print_ast(json_data->ast);
+//	AST_Value_Node* value_node = json_data["id"];
+	AST_Value_Node value = json_data["id"];
+	int a = 0;
+	
+//	Json_Data blah;
+//	blah["id"];
+	
+	print_ast(json_data.ast);
 	
 	int result = Catch::Session().run(argc, argv);
 	return result;

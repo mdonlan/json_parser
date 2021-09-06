@@ -446,13 +446,13 @@ void lex(Parser* parser) {
 	}
 }
 
-Json_Data* parse(std::string str) {
+Json_Data parse(std::string str) {
 	Parser* parser = new Parser;
 	parser->str = str;
 	lex(parser);
-	Json_Data* json_data = new Json_Data;
-	json_data->ast = create_ast(parser->tokens);
-	json_data->tokens = parser->tokens;
+	Json_Data json_data;
+	json_data.ast = create_ast(parser->tokens);
+	json_data.tokens = parser->tokens;
 	delete parser;
 	return json_data;
 }
@@ -469,3 +469,28 @@ const std::string load_json_from_file(const std::string& file_name) {
 	
 	return json_test_str;
 }
+
+
+// use this overload to access data withing a Json_Data object
+// check for keys that match the string and return their value node
+AST_Value_Node Json_Data::operator[](std::string key) {
+	AST_Value_Node value_node;
+	//find key
+	bool searching_for_key = true;
+	AST_Node* current_node = this->ast->root;
+	int attempts = 0;
+	int max_attempts = 100;
+	while (searching_for_key) {
+		for (AST_Pair_Node* pair_node : current_node->properties) {
+			if (pair_node->key.compare(key) == 0) {
+				value_node = pair_node->value_node;
+				searching_for_key = false;
+			}
+		}
+		attempts++;
+		if (attempts > max_attempts) searching_for_key = false;
+	}
+	
+	return value_node;
+}
+

@@ -118,12 +118,17 @@ struct Print_Data {
 struct Json_Data {
 	AST* ast;
 	std::vector<Token> tokens;
+	
+	AST_Value_Node operator[](std::string key);
 };
 
-
+//class GetValue {
+//public:
+	
+//};
 
 void lex(Parser* parser);
-Json_Data* parse(std::string str);
+Json_Data parse(std::string str);
 void consume(Parser* parser);
 char peek(Parser* parser, unsigned int index);
 void eat_whitespace(Parser* parser);
