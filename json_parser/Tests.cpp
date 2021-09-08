@@ -6,28 +6,28 @@
 //
 
 #include <stdio.h>
-#include "json.h"
+#include "Json.h"
 #include "Tests.h"
 #include "catch.hpp"
 
 
 TEST_CASE( "\nBasic Test\n", "[basic]" ) {
-	Json_Data json_data = parse(load_json_from_file("json_test.json"));
-	AST_Node* root_node = json_data.ast->root;
-	
+	Json json = parse(load_json_from_file("json_test.json"));
+	AST_Node* root_node = get_object(json.value);
+
 	REQUIRE(root_node != nullptr);
 	REQUIRE(root_node->name.compare("ROOT") == 0);
-	
+
 	AST_Pair_Node* pair_node = root_node->properties[0];
 	REQUIRE(pair_node->key.compare("userId") == 0);
 	REQUIRE(pair_node->value_node.type == Value_Type::NUMBER);
 	REQUIRE(std::get<float>(pair_node->value_node.value) == 1);
-	
+
 	pair_node = root_node->properties[1];
 	REQUIRE(pair_node->key.compare("id") == 0);
 	REQUIRE(pair_node->value_node.type == Value_Type::NUMBER);
 	REQUIRE(std::get<float>(pair_node->value_node.value) == 1);
-	
+
 	pair_node = root_node->properties[2];
 	REQUIRE(pair_node->key.compare("title") == 0);
 	REQUIRE(pair_node->value_node.type == Value_Type::STRING);
@@ -35,13 +35,14 @@ TEST_CASE( "\nBasic Test\n", "[basic]" ) {
 }
 
 TEST_CASE("ARRAY TESTS") {
-	Json_Data json_data = parse(std::string{R"(
+	Json json = parse(std::string{R"(
 		{
 			"nested_array": [[]]
 		}
 	)"});
 	
-	AST_Node* root_node = json_data.ast->root;
+//	AST_Node* root_node = json_data.ast->root;
+	AST_Node* root_node = get_object(json.value);
 	
 	REQUIRE(root_node != nullptr);
 	REQUIRE(root_node->name.compare("ROOT") == 0);
@@ -54,7 +55,7 @@ TEST_CASE("ARRAY TESTS") {
 }
 
 TEST_CASE("OBJECT IN ARRAY") {
-	Json_Data json_data = parse(std::string{R"(
+	Json json = parse(std::string{R"(
 		{
 			"object_in_arr": [
 				{
@@ -64,7 +65,8 @@ TEST_CASE("OBJECT IN ARRAY") {
 		}
 	)"});
 
-	AST_Node* root_node = json_data.ast->root;
+//	AST_Node* root_node = json_data.ast->root;
+	AST_Node* root_node = get_object(json.value);
 
 	REQUIRE(root_node != nullptr);
 	REQUIRE(root_node->name.compare("ROOT") == 0);
@@ -85,7 +87,7 @@ TEST_CASE("OBJECT IN ARRAY") {
 }
 
 TEST_CASE("COMPLEX") {
-	Json_Data json_data = parse(std::string{R"(
+	Json json = parse(std::string{R"(
 		{
 			"name": "json_test_ship",
 			"tiles": [
@@ -122,10 +124,17 @@ TEST_CASE("COMPLEX") {
 		}
 	)"});
 
-	AST_Node* root_node = json_data.ast->root;
+	AST_Node* root_node = get_object(json.value);
 
 	REQUIRE(root_node != nullptr);
 	REQUIRE(root_node->name.compare("ROOT") == 0);
 	REQUIRE(root_node->properties.size() == 3);
 //	REQUIRE(json_data["name"].value.as_string())
 }
+
+//TEST_CASE("STRING") {
+//	SECTION("lonely_string") {
+//		Json json = parse("abc");
+//		int a = 0;
+//	}
+//}

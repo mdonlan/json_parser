@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <variant>
+#include <map>
 
 enum class Token_Type {
 	OPEN_CURLY_BRACKET,
@@ -51,40 +52,54 @@ enum class Value_Type {
 	BOOL,
 	OBJECT,
 	ARRAY,
-	ERROR
+	ERROR,
+	NULL_TYPE
 };
 
 struct AST_Node;
 
 
-struct AST_Value_Node {
+struct Value {
 	Value_Type type;
-	std::variant<std::string, float, bool, AST_Node*, std::vector<AST_Value_Node>> value;
+	std::variant<std::string, float, bool, AST_Node*, std::vector<Value>> value;
 	
-	AST_Value_Node operator[](std::string key);
-	AST_Value_Node operator[](int i);
+	// we need to simplify everything down to just a Value
+	//
+	
+//	std::variant<std::string, float, bool, std::vector<Value>, std::map<std::string, Value>> value; // string, number, bool, array, object
+	
+	Value operator[](std::string key);
+	Value operator[](int i);
 };
 
 struct AST_Node {
 	AST_Node_Type type;
 	std::string name;
 	std::vector<AST_Pair_Node*> properties;
-	std::vector<AST_Value_Node> array;
+	std::vector<Value> array;
 	AST_Node* parent;
 };
 
-typedef std::vector<AST_Value_Node> V_Node_List;
+typedef std::vector<Value> V_Node_List;
 
 // should we replace this w/ a map???
 struct AST_Pair_Node {
 	std::string key;
-	AST_Value_Node value_node;
+	Value value_node;
 	AST_Node* parent;
 };
 
 struct AST {
-	AST_Node* root;
+//	AST_Node* root;
+//	Value value = {.type = Value_Type::NULL_TYPE};
 };
+
+struct Json {
+	Value value = {.type = Value_Type::NULL_TYPE};
+	
+	Value operator[](std::string key);
+};
+
 
 enum class Print_Type {
 	STRING,
@@ -98,37 +113,26 @@ struct Print_Data {
 	bool bool_val;
 };
 
-struct Json_Data {
-	AST* ast;
-	std::vector<Token> tokens;
-	
-	AST_Value_Node operator[](std::string key);
-};
-
-//class GetValue {
-//public:
-	
-//};
 
 void lex(Parser* parser);
-Json_Data parse(std::string str);
+Json parse(std::string str);
 void consume(Parser* parser);
 char peek(Parser* parser, unsigned int index);
 void eat_whitespace(Parser* parser);
-AST* create_ast(std::vector<Token>& tokens);
+Json parse_tokens(std::vector<Token>& tokens);
 const std::string load_json_from_file(const std::string& file_name);
 
-void print_ast(AST* ast);
+//void print_ast(AST* ast);
 //void pretty_print(int indent, Print_Type type, Print_Data data, bool new_line = true);
 void print_object(AST_Node* node, int indent);
-void print_array(std::vector<AST_Value_Node> array, int indent);
-void print_value(AST_Value_Node value_node, int indent = 0);
+void print_array(std::vector<Value> array, int indent);
+void print_value(Value value_node, int indent = 0);
 
-std::string get_string(AST_Value_Node value_node);
-float get_number(AST_Value_Node value_node);
-std::vector<AST_Value_Node> get_array(AST_Value_Node value_node);
-std::vector<AST_Pair_Node*> get_object(AST_Value_Node value_node);
-bool get_bool(AST_Value_Node value_node);
+std::string get_string(Value value_node);
+float get_number(Value value_node);
+std::vector<Value> get_array(Value value_node);
+AST_Node* get_object(Value value_node);
+bool get_bool(Value value_node);
 
 
 

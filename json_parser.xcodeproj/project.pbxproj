@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		4C66AED126D1B99F00EFD62D /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C66AED026D1B99F00EFD62D /* main.cpp */; };
 		4C66AEDA26D4A1F900EFD62D /* Tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C66AED926D4A1F900EFD62D /* Tests.cpp */; };
-		4C66AEE026D4A3B700EFD62D /* json.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C66AEDE26D4A3B700EFD62D /* json.cpp */; };
+		4C66AEE026D4A3B700EFD62D /* Json.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C66AEDE26D4A3B700EFD62D /* Json.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -27,10 +27,10 @@
 /* Begin PBXFileReference section */
 		4C66AECD26D1B99F00EFD62D /* json_parser */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = json_parser; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C66AED026D1B99F00EFD62D /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		4C66AED726D4A07E00EFD62D /* json.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = json.h; sourceTree = "<group>"; };
+		4C66AED726D4A07E00EFD62D /* Json.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Json.h; sourceTree = "<group>"; };
 		4C66AED826D4A1E800EFD62D /* Tests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Tests.h; sourceTree = "<group>"; };
 		4C66AED926D4A1F900EFD62D /* Tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Tests.cpp; sourceTree = "<group>"; };
-		4C66AEDE26D4A3B700EFD62D /* json.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = json.cpp; sourceTree = "<group>"; };
+		4C66AEDE26D4A3B700EFD62D /* Json.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Json.cpp; sourceTree = "<group>"; };
 		4C66AEE626D58EA200EFD62D /* json_parser_tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = json_parser_tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C66AEEF26D593D000EFD62D /* catch.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = catch.hpp; sourceTree = "<group>"; };
 		4CED14B726E5B87700DA1646 /* json_test.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = json_test.json; sourceTree = "<group>"; };
@@ -78,8 +78,8 @@
 				4CED14B726E5B87700DA1646 /* json_test.json */,
 				4C66AEEF26D593D000EFD62D /* catch.hpp */,
 				4C66AED026D1B99F00EFD62D /* main.cpp */,
-				4C66AED726D4A07E00EFD62D /* json.h */,
-				4C66AEDE26D4A3B700EFD62D /* json.cpp */,
+				4C66AED726D4A07E00EFD62D /* Json.h */,
+				4C66AEDE26D4A3B700EFD62D /* Json.cpp */,
 				4C66AED826D4A1E800EFD62D /* Tests.h */,
 				4C66AED926D4A1F900EFD62D /* Tests.cpp */,
 				4CED14B826E5B89500DA1646 /* ship_test.json */,
@@ -176,7 +176,7 @@
 			files = (
 				4C66AED126D1B99F00EFD62D /* main.cpp in Sources */,
 				4C66AEDA26D4A1F900EFD62D /* Tests.cpp in Sources */,
-				4C66AEE026D4A3B700EFD62D /* json.cpp in Sources */,
+				4C66AEE026D4A3B700EFD62D /* Json.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
