@@ -59,6 +59,7 @@ void consume(Parser* parser) {
 		std::string str;
 		unsigned int p_index = parser->index + 1;
 		bool found_end_of_string = false;
+		int attempts = 0;
 		
 		while (!found_end_of_string) {
 			char pc = peek(parser, p_index);
@@ -76,6 +77,12 @@ void consume(Parser* parser) {
 				str.push_back(pc);
 				p_index++;
 			}
+			
+			if (attempts > 1000) {
+				assert(false);
+			}
+			
+			attempts++;
 		}
 		
 		token.value = str;
@@ -166,9 +173,80 @@ Json parse_tokens(std::vector<Token>& tokens) {
 	
 	while (current_token.type != Token_Type::END_OF_FILE) {
 		
-		// handle arrays
-		if (current_node && current_node->type == AST_Node_Type::ARRAY) {
-			Value value_node;
+		// handle setting the root value
+		if (current_node == nullptr) {
+			switch (current_token.type) {
+				case Token_Type::STRING_VALUE:
+//					value_node.type = Value_Type::STRING;
+//					value_node.value = std::get<std::string>(current_token.value);
+//					current_node->array.push_back(value_node);
+					break;
+				case Token_Type::NUMBER:
+//					value_node.type = Value_Type::NUMBER;
+//					value_node.value = std::get<float>(current_token.value);
+//					current_node->array.push_back(value_node);
+					break;
+				case Token_Type::BOOL:
+//					value_node.type = Value_Type::BOOL;
+//					value_node.value = std::get<bool>(current_token.value);
+//					current_node->array.push_back(value_node);
+					break;
+				case Token_Type::CLOSED_SQUARE_BRACKET:
+//					current_node = current_node->parent;
+					break;
+				case Token_Type::OPEN_SQUARE_BRACKET: {
+//					AST_Node* new_array_node = new AST_Node;
+//					new_array_node->type = AST_Node_Type::ARRAY;
+//					new_array_node->name = "ARRAY";
+//					new_array_node->parent = current_node;
+//
+//					value_node.type = Value_Type::ARRAY;
+//					value_node.value = new_array_node;
+//
+//
+//					// since we are in array section push as new item in array
+//					assert(current_node->type == AST_Node_Type::ARRAY);
+//					current_node->array.push_back(value_node);
+//
+//					current_node = new_array_node;
+					break;
+				}
+				case Token_Type::OPEN_CURLY_BRACKET: {
+					AST_Node* new_object_node = new AST_Node;
+					new_object_node->type = AST_Node_Type::OBJECT;
+					new_object_node->name = "ROOT";
+//					new_object_node->parent = current_node;
+					
+					Basic_Value value;
+					value.type = Value_Type::OBJECT;
+					value.value = new_object_node;
+					json.value = value;
+//
+//					value_node.type = Value_Type::OBJECT;
+//					value_node.value = new_object_node;
+//					current_node->array.push_back(value_node);
+//
+					current_node = new_object_node;
+					
+//					assert(false);
+					break;
+				}
+				case Token_Type::COLON: {
+					break;
+				}
+				case Token_Type::CLOSED_CURLY_BRACKET: {
+					break;
+				}
+				case Token_Type::NAME: {
+					break;
+				}
+				default:
+					assert(false);
+					break;
+			}
+		} // handle arrays
+		else if (current_node && current_node->type == AST_Node_Type::ARRAY) {
+			Basic_Value value_node;
 //			current_array = std::get<std::vector<AST_Value_Node>>(current_pair_node->value_node.value);
 			
 			switch (current_token.type) {
@@ -288,7 +366,7 @@ Json parse_tokens(std::vector<Token>& tokens) {
 				
 				AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
 				
-				Value value_node;
+				Basic_Value value_node;
 				value_node.type = Value_Type::STRING;
 				value_node.value = std::get<std::string>(current_token.value);
 				
@@ -298,7 +376,7 @@ Json parse_tokens(std::vector<Token>& tokens) {
 				
 				AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
 				
-				Value value_node;
+				Basic_Value value_node;
 				value_node.type = Value_Type::NUMBER;
 				value_node.value = std::get<float>(current_token.value);
 				
@@ -308,7 +386,7 @@ Json parse_tokens(std::vector<Token>& tokens) {
 				
 				AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
 				
-				Value value_node;
+				Basic_Value value_node;
 				value_node.type = Value_Type::BOOL;
 				value_node.value = std::get<bool>(current_token.value);
 				
@@ -322,6 +400,8 @@ Json parse_tokens(std::vector<Token>& tokens) {
 				
 //				value_node.type = Value_Type::OBJECT;
 //				value_node.value = new_array_node;
+				
+				
 				
 				
 //				current_node->in_array = true;
@@ -366,13 +446,13 @@ Json parse_tokens(std::vector<Token>& tokens) {
 	return json;
 }
 
-void print_array(std::vector<Value> array, int indent) {
+void print_array(std::vector<Basic_Value> array, int indent) {
 	printf("[\n");
 	for (int i = 0; i < indent + 1; i++) {
 		printf("	");
 	}
 	for (int i = 0; i < array.size(); i++) {
-		Value& node = array[i];
+		Basic_Value& node = array[i];
 		print_value(node);
 		if (i < array.size() - 1) {
 			printf(", ");
@@ -393,7 +473,7 @@ void print_key(int indent, std::string_view name) {
 	printf("%s: ", name);
 }
 
-void print_value(Value value_node, int indent) {
+void print_value(Basic_Value value_node, int indent) {
 	if (indent > 0) {
 		for (int i = 0; i < indent; i++) {
 			printf("	");
@@ -419,7 +499,7 @@ void print_object(AST_Node* node, int indent) {
 			printf("\n");
 		}
 		else if (pair_node->value_node.type == Value_Type::ARRAY) {
-			print_array(std::get<std::vector<Value>>(pair_node->value_node.value), indent);
+			print_array(std::get<std::vector<Basic_Value>>(pair_node->value_node.value), indent);
 		} else {
 			print_value(pair_node->value_node, indent);
 			printf("\n");
@@ -475,8 +555,8 @@ const std::string load_json_from_file(const std::string& file_name) {
 
 // use this overload to access data withing a Json_Data object
 // check for keys that match the string and return their value node
-Value Json::operator[](std::string key) {
-	Value value_node;
+Basic_Value Json::operator[](std::string key) {
+	Basic_Value value_node;
 	//find key
 	bool searching_for_key = true;
 	AST_Node* current_node;
@@ -502,8 +582,8 @@ Value Json::operator[](std::string key) {
 
 // use this overload to access data withing a AST_Value_Node object
 // check for keys that match the string and return their value node
-Value Value::operator[](std::string key) {
-	Value value_node;
+Basic_Value Basic_Value::operator[](std::string key) {
+	Basic_Value value_node;
 	
 	if (this->type == Value_Type::ARRAY) {
 		
@@ -521,14 +601,14 @@ Value Value::operator[](std::string key) {
 	return value_node;
 }
 
-Value Value::operator[](int i) {
+Basic_Value Basic_Value::operator[](int i) {
 	if (this->type == Value_Type::ARRAY) {
 		return std::get<AST_Node*>(this->value)->array[i];
 		assert(false);
 	} else if (this->type == Value_Type::OBJECT) {
 		assert(false);
 	} else if (this->type == Value_Type::NUMBER){
-		Value value_node;
+		Basic_Value value_node;
 		value_node.type = Value_Type::ERROR;
 		return value_node;
 	}
@@ -537,15 +617,15 @@ Value Value::operator[](int i) {
 	return list[i];
 }
 
-std::string get_string(Value value_node) {
+std::string get_string(Basic_Value value_node) {
 	return std::get<std::string>(value_node.value);
 }
 
-float get_number(Value value_node) {
+float get_number(Basic_Value value_node) {
 	return std::get<float>(value_node.value);
 }
 
-std::vector<Value> get_array(Value value_node) {
+std::vector<Basic_Value> get_array(Basic_Value value_node) {
 	AST_Node* array_node = std::get<AST_Node*>(value_node.value);
 	return array_node->array;
 }
@@ -555,10 +635,10 @@ std::vector<Value> get_array(Value value_node) {
 //	return obj_node->properties;
 //}
 
-AST_Node* get_object(Value value_node) {
+AST_Node* get_object(Basic_Value value_node) {
 	return std::get<AST_Node*>(value_node.value);
 }
 
-bool get_bool(Value value_node) {
+bool get_bool(Basic_Value value_node) {
 	return std::get<bool>(value_node.value);
 }

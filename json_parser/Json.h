@@ -59,33 +59,33 @@ enum class Value_Type {
 struct AST_Node;
 
 
-struct Value {
+struct Basic_Value {
 	Value_Type type;
-	std::variant<std::string, float, bool, AST_Node*, std::vector<Value>> value;
+	std::variant<std::string, float, bool, AST_Node*, std::vector<Basic_Value>> value;
 	
 	// we need to simplify everything down to just a Value
 	//
 	
 //	std::variant<std::string, float, bool, std::vector<Value>, std::map<std::string, Value>> value; // string, number, bool, array, object
 	
-	Value operator[](std::string key);
-	Value operator[](int i);
+	Basic_Value operator[](std::string key);
+	Basic_Value operator[](int i);
 };
 
 struct AST_Node {
 	AST_Node_Type type;
 	std::string name;
 	std::vector<AST_Pair_Node*> properties;
-	std::vector<Value> array;
+	std::vector<Basic_Value> array;
 	AST_Node* parent;
 };
 
-typedef std::vector<Value> V_Node_List;
+typedef std::vector<Basic_Value> V_Node_List;
 
 // should we replace this w/ a map???
 struct AST_Pair_Node {
 	std::string key;
-	Value value_node;
+	Basic_Value value_node;
 	AST_Node* parent;
 };
 
@@ -95,9 +95,9 @@ struct AST {
 };
 
 struct Json {
-	Value value = {.type = Value_Type::NULL_TYPE};
+	Basic_Value value = {.type = Value_Type::NULL_TYPE};
 	
-	Value operator[](std::string key);
+	Basic_Value operator[](std::string key);
 };
 
 
@@ -125,14 +125,14 @@ const std::string load_json_from_file(const std::string& file_name);
 //void print_ast(AST* ast);
 //void pretty_print(int indent, Print_Type type, Print_Data data, bool new_line = true);
 void print_object(AST_Node* node, int indent);
-void print_array(std::vector<Value> array, int indent);
-void print_value(Value value_node, int indent = 0);
+void print_array(std::vector<Basic_Value> array, int indent);
+void print_value(Basic_Value value_node, int indent = 0);
 
-std::string get_string(Value value_node);
-float get_number(Value value_node);
-std::vector<Value> get_array(Value value_node);
-AST_Node* get_object(Value value_node);
-bool get_bool(Value value_node);
+std::string get_string(Basic_Value value_node);
+float get_number(Basic_Value value_node);
+std::vector<Basic_Value> get_array(Basic_Value value_node);
+AST_Node* get_object(Basic_Value value_node);
+bool get_bool(Basic_Value value_node);
 
 
 

@@ -14,9 +14,23 @@
 #include "catch.hpp"
 #include <iostream>
 #include <map>
-
+#include <filesystem>
+namespace fs = std::filesystem;
 
 int main(int argc, const char * argv[]) {
+	
+	// load the test files
+//	std::string path = "test_files";
+//	int index = 0;
+//	for (const auto & entry : fs::directory_iterator(path)) {
+////		std::cout << entry.path() << std::endl;
+//		printf("starting test for file: %s\n", entry.path().c_str());
+//		Json json = parse(load_json_from_file(entry.path()));
+//		printf("index: %d\n", index);
+//
+//		index++;
+//	}
+		
 	
 //	std::string json_str = R"(
 //		{
@@ -24,8 +38,8 @@ int main(int argc, const char * argv[]) {
 //		}
 //	)";
 	
-	const std::string& json_str = load_json_from_file("large_test_file_2.json");
-	Json json_data = parse(json_str);
+//	const std::string& json_str = load_json_from_file("large_test_file_2.json");
+//	Json json_data = parse(json_str);
 
 //	//
 //	//
