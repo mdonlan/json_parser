@@ -23,6 +23,8 @@ enum class Token_Type {
 	COLON,
 	OPEN_SQUARE_BRACKET,
 	CLOSED_SQUARE_BRACKET,
+//	NULL_TYPE,
+	COMMA,
 	END_OF_FILE
 };
 
@@ -134,7 +136,7 @@ float get_number(Basic_Value value_node);
 std::vector<Basic_Value> get_array(Basic_Value value_node);
 AST_Node* get_object(Basic_Value value_node);
 bool get_bool(Basic_Value value_node);
-bool is_valid_syntax(const Token& token, AST_Node* node);
-
+bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& err_msg);
+void json_err(const std::string& err_msg);
 
 #endif /* json_h */

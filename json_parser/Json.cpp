@@ -53,6 +53,12 @@ void consume(Parser* parser) {
 		token.value = '}';
 		parser->tokens.push_back(token);
 		parser->index++;
+	} else if (c == ',') {
+		Token token;
+		token.type = Token_Type::COMMA;
+		token.value = ',';
+		parser->tokens.push_back(token);
+		parser->index++;
 	} else if (c == '"') { // name/decl token or string value token
 		Token token;
 		
@@ -119,14 +125,14 @@ void consume(Parser* parser) {
 				token.type = Token_Type::BOOL;
 				token.value = false;
 				parser->tokens.push_back(token);
-				parser->index++;
+//				parser->index++;
 				parser->cache.clear();
 			} else if (parser->cache.compare("true") == 0) {
 				Token token;
 				token.type = Token_Type::BOOL;
 				token.value = true;
 				parser->tokens.push_back(token);
-				parser->index++;
+//				parser->index++;
 				parser->cache.clear();
 			}
 		}
@@ -160,6 +166,7 @@ Json parse_tokens(std::vector<Token>& tokens) {
 	
 	int token_index = 0;
 	Token current_token = tokens[token_index];
+//	Token prev_token = {.type = Token_Type::NULL_TYPE, .value = false};
 	
 //	AST_Node* root_node = new AST_Node;
 //	root_node->type = AST_Node_Type::ROOT;
@@ -171,12 +178,18 @@ Json parse_tokens(std::vector<Token>& tokens) {
 //	std::vector<AST_Value_Node>* current_array;
 //	AST_Node* current_array_node = nullptr;
 	
+	std::string err_msg;
+	
 	while (current_token.type != Token_Type::END_OF_FILE) {
 		
-		if (is_valid_syntax(current_token, current_node)) {
+		if (is_valid_syntax(tokens, token_index, err_msg)) {
 			
 		} else {
-			
+//			assert(false);
+//			Json json;
+			json.value.type = Value_Type::ERROR;
+			json.value.value = err_msg;
+			return json;
 		}
 		
 		// handle setting the root value
@@ -453,6 +466,8 @@ Json parse_tokens(std::vector<Token>& tokens) {
 				}
 			} else if (current_token.type == Token_Type::COLON) {
 	//			assert(false);
+			} else if (current_token.type == Token_Type::COMMA) {
+				
 			} else {
 				assert(false); // we should not reach this point, if we do it means wh have a token type that we are not checking
 			}
@@ -665,15 +680,97 @@ bool get_bool(Basic_Value value_node) {
 	return std::get<bool>(value_node.value);
 }
 
-bool is_valid_syntax(const Token& token, AST_Node* node) {
+bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& err_msg) {
 	
-	if (!node) {
-		if (token.type == Token_Type::OPEN_CURLY_BRACKET ||
-			token.type == Token_Type::OPEN_SQUARE_BRACKET ||
-			token.type == Token_Type::STRING_VALUE) {
+	// grammar/ syntax
+	// { -> NAME
+	
+	Token current_token = tokens[token_index];
+//	Token_Type cur_type = current_token.type;
+	Token prev_token;
+	
+	if (token_index == 0) { // on first token
+		if (current_token.type == Token_Type::OPEN_CURLY_BRACKET) {
 			return true;
+		} else {
+			err_msg = "Invalid token at index 0.";
+			json_err(err_msg);
+		}
+	} else {
+		prev_token = tokens[token_index - 1];
+		
+		if (prev_token.type == Token_Type::OPEN_CURLY_BRACKET) {
+			if (current_token.type == Token_Type::NAME) {
+				return true;
+			} else {
+				err_msg = "Invalid token after open_curly_bracket.";
+				json_err(err_msg);
+			}
+		} else if (prev_token.type == Token_Type::COLON) {
+			if (current_token.type == Token_Type::STRING_VALUE ||
+				current_token.type == Token_Type::OPEN_CURLY_BRACKET ||
+				current_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
+				current_token.type == Token_Type::NUMBER ||
+				current_token.type == Token_Type::BOOL) {
+				return true;
+			} else {
+				json_err("Invalid token after colon.");
+			}
+		} else if (current_token.type == Token_Type::COLON) {
+			if (prev_token.type == Token_Type::NAME) {
+				return true;
+			}
+		} else if (current_token.type == Token_Type::NAME) {
+			if (prev_token.type == Token_Type::COMMA) {
+				return true;
+			}
+		} else if (current_token.type == Token_Type::COMMA) {
+			if (prev_token.type == Token_Type::NUMBER ||
+				prev_token.type == Token_Type::STRING_VALUE ||
+				prev_token.type == Token_Type::BOOL ||
+				prev_token.type == Token_Type::CLOSED_CURLY_BRACKET ||
+				prev_token.type == Token_Type::CLOSED_SQUARE_BRACKET) {
+				return true;
+			}
+		} else if (current_token.type == Token_Type::CLOSED_CURLY_BRACKET) {
+			if (prev_token.type == Token_Type::NUMBER ||
+				prev_token.type == Token_Type::STRING_VALUE ||
+				prev_token.type == Token_Type::BOOL ||
+				prev_token.type == Token_Type::CLOSED_SQUARE_BRACKET ||
+				prev_token.type == Token_Type::CLOSED_CURLY_BRACKET) {
+				return true;
+			}
+		} else if (current_token.type == Token_Type::STRING_VALUE) {
+			if (prev_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
+				prev_token.type == Token_Type::COMMA) {
+				return true;
+			}
+		} else if (current_token.type == Token_Type::CLOSED_SQUARE_BRACKET) {
+			if (prev_token.type == Token_Type::STRING_VALUE ||
+				prev_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
+				prev_token.type == Token_Type::CLOSED_SQUARE_BRACKET ||
+				prev_token.type == Token_Type::CLOSED_CURLY_BRACKET ||
+				prev_token.type == Token_Type::COMMA) {
+				return true;
+			}
+		} else if (current_token.type == Token_Type::OPEN_SQUARE_BRACKET) {
+			if (prev_token.type == Token_Type::OPEN_SQUARE_BRACKET) {
+				return true;
+			}
+		} else if (current_token.type == Token_Type::OPEN_CURLY_BRACKET) {
+			if (prev_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
+				prev_token.type == Token_Type::COMMA) {
+				return true;
+			}
 		}
 	}
+
+	
+	
 	
 	return false;
+}
+
+void json_err(const std::string& err_msg) {
+	printf("JSON_ERROR: %s\n", err_msg.c_str());
 }

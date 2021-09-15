@@ -136,6 +136,14 @@ TEST_CASE("STRING") {
 	SECTION("lonely_string") {
 		Json json = parse(std::string{R"("abc")"});
 		
+		REQUIRE(json.value.type == Value_Type::STRING);
 		REQUIRE(get_string(json.value).compare("abc") == 0);
+	}
+}
+
+TEST_CASE("Expected Errors") {
+	SECTION("Invalid Starting Token") {
+		Json json = parse(":");
+		
 	}
 }
