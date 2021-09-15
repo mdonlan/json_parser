@@ -13,6 +13,7 @@
 #include <variant>
 #include <map>
 
+
 enum class Token_Type {
 	OPEN_CURLY_BRACKET,
 	CLOSED_CURLY_BRACKET,
@@ -25,7 +26,9 @@ enum class Token_Type {
 	CLOSED_SQUARE_BRACKET,
 //	NULL_TYPE,
 	COMMA,
-	END_OF_FILE
+	END_OF_FILE,
+//	ERROR,
+	UNTERMINATED_STRING
 };
 
 struct Token {

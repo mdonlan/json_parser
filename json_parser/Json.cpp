@@ -82,6 +82,14 @@ void consume(Parser* parser) {
 			} else {
 				str.push_back(pc);
 				p_index++;
+				
+				if (p_index >= parser->str.size()) {
+					// hit end of the string w/out finding a closing quote
+					found_end_of_string = true;
+					token.type = Token_Type::UNTERMINATED_STRING;
+					
+//					json_err("Unterminated string\n");
+				}
 			}
 			
 			if (attempts > 1000) {
@@ -689,8 +697,15 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 //	Token_Type cur_type = current_token.type;
 	Token prev_token;
 	
+	if (current_token.type == Token_Type::UNTERMINATED_STRING) {
+		err_msg = "Unterminated string found.";
+		json_err(err_msg);
+		return false;
+	}
+	
 	if (token_index == 0) { // on first token
-		if (current_token.type == Token_Type::OPEN_CURLY_BRACKET) {
+		if (current_token.type == Token_Type::OPEN_CURLY_BRACKET ||
+			current_token.type == Token_Type::STRING_VALUE) {
 			return true;
 		} else {
 			err_msg = "Invalid token at index 0.";
@@ -719,10 +734,16 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 		} else if (current_token.type == Token_Type::COLON) {
 			if (prev_token.type == Token_Type::NAME) {
 				return true;
+			} else {
+				err_msg = "Invalid char ':'.";
+				json_err(err_msg);
 			}
 		} else if (current_token.type == Token_Type::NAME) {
 			if (prev_token.type == Token_Type::COMMA) {
 				return true;
+			} else {
+				err_msg = "Invalid token before a Name.";
+				json_err(err_msg);
 			}
 		} else if (current_token.type == Token_Type::COMMA) {
 			if (prev_token.type == Token_Type::NUMBER ||
@@ -731,6 +752,9 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 				prev_token.type == Token_Type::CLOSED_CURLY_BRACKET ||
 				prev_token.type == Token_Type::CLOSED_SQUARE_BRACKET) {
 				return true;
+			} else {
+				err_msg = "Invalid token ','.";
+				json_err(err_msg);
 			}
 		} else if (current_token.type == Token_Type::CLOSED_CURLY_BRACKET) {
 			if (prev_token.type == Token_Type::NUMBER ||
@@ -739,11 +763,18 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 				prev_token.type == Token_Type::CLOSED_SQUARE_BRACKET ||
 				prev_token.type == Token_Type::CLOSED_CURLY_BRACKET) {
 				return true;
+			} else {
+				err_msg = "Invalid token '}'.";
+				json_err(err_msg);
 			}
 		} else if (current_token.type == Token_Type::STRING_VALUE) {
 			if (prev_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
-				prev_token.type == Token_Type::COMMA) {
+				prev_token.type == Token_Type::COMMA ||
+				prev_token.type == Token_Type::CLOSED_SQUARE_BRACKET) {
 				return true;
+			} else {
+				err_msg = "Invalid token before String Value.";
+				json_err(err_msg);
 			}
 		} else if (current_token.type == Token_Type::CLOSED_SQUARE_BRACKET) {
 			if (prev_token.type == Token_Type::STRING_VALUE ||
@@ -752,15 +783,24 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 				prev_token.type == Token_Type::CLOSED_CURLY_BRACKET ||
 				prev_token.type == Token_Type::COMMA) {
 				return true;
+			} else {
+				err_msg = "Invalid token ']'.";
+				json_err(err_msg);
 			}
 		} else if (current_token.type == Token_Type::OPEN_SQUARE_BRACKET) {
 			if (prev_token.type == Token_Type::OPEN_SQUARE_BRACKET) {
 				return true;
+			} else {
+				err_msg = "Invalid token '['.";
+				json_err(err_msg);
 			}
 		} else if (current_token.type == Token_Type::OPEN_CURLY_BRACKET) {
 			if (prev_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
 				prev_token.type == Token_Type::COMMA) {
 				return true;
+			} else {
+				err_msg = "Invalid token '{'.";
+				json_err(err_msg);
 			}
 		}
 	}

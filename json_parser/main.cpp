@@ -9,9 +9,12 @@
 
 
 #include "Json.h"
-#include "Tests.h"
 #define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
+#include "Tests.h"
+
+#define DEVMODE 0
+
 #include <iostream>
 #include <map>
 #include <filesystem>
@@ -94,6 +97,9 @@ int main(int argc, const char * argv[]) {
 	
 	
 	
+#if DEVMODE
 	int result = Catch::Session().run(argc, argv);
 	return result;
+#endif
+	return 0;
 }

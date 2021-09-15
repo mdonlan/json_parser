@@ -144,6 +144,20 @@ TEST_CASE("STRING") {
 TEST_CASE("Expected Errors") {
 	SECTION("Invalid Starting Token") {
 		Json json = parse(":");
-		
+		REQUIRE(json.value.type == Value_Type::ERROR);
+	}
+	
+	SECTION("Unterminated String") {
+		Json json = parse(R"("hello)");
+		REQUIRE(json.value.type == Value_Type::ERROR);
+	}
+	
+	SECTION("Unterminated String Part 2") {
+		Json json = parse(R"(
+			{
+				"a": "test
+			}
+		)");
+//		REQUIRE(json.value.type == Value_Type::ERROR);
 	}
 }
