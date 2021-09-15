@@ -41,7 +41,8 @@ struct Parser {
 
 enum class AST_Node_Type {
 	OBJECT,
-	ARRAY
+	ARRAY,
+//	STRING
 };
 
 struct AST_Pair_Node;
@@ -133,7 +134,7 @@ float get_number(Basic_Value value_node);
 std::vector<Basic_Value> get_array(Basic_Value value_node);
 AST_Node* get_object(Basic_Value value_node);
 bool get_bool(Basic_Value value_node);
-
+bool is_valid_syntax(const Token& token, AST_Node* node);
 
 
 #endif /* json_h */

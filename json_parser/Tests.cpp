@@ -132,9 +132,10 @@ TEST_CASE("COMPLEX") {
 //	REQUIRE(json_data["name"].value.as_string())
 }
 
-//TEST_CASE("STRING") {
-//	SECTION("lonely_string") {
-//		Json json = parse("abc");
-//		int a = 0;
-//	}
-//}
+TEST_CASE("STRING") {
+	SECTION("lonely_string") {
+		Json json = parse(std::string{R"("abc")"});
+		
+		REQUIRE(get_string(json.value).compare("abc") == 0);
+	}
+}
