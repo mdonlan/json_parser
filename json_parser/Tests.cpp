@@ -35,23 +35,52 @@ TEST_CASE( "\nBasic Test\n", "[basic]" ) {
 }
 
 TEST_CASE("ARRAY TESTS") {
-	Json json = parse(std::string{R"(
-		{
-			"nested_array": [[]]
-		}
-	)"});
+	SECTION("Nested Array") {
+		Json json = parse(std::string{R"(
+			{
+				"nested_array": [[]]
+			}
+		)"});
+		
+	//	AST_Node* root_node = json_data.ast->root;
+		AST_Node* root_node = get_object(json.value);
+		
+		REQUIRE(root_node != nullptr);
+		REQUIRE(root_node->name.compare("ROOT") == 0);
+		REQUIRE(root_node->properties.size() == 1);
+		
+		AST_Pair_Node* pair_node = root_node->properties[0];
+		REQUIRE(pair_node->key.compare("nested_array") == 0);
+		REQUIRE(pair_node->value_node.type == Value_Type::ARRAY);
+		REQUIRE(std::get<AST_Node*>(pair_node->value_node.value)->array.size() == 1);
+	}
 	
-//	AST_Node* root_node = json_data.ast->root;
-	AST_Node* root_node = get_object(json.value);
+	SECTION("Naked Array") {
+		Json json = parse(std::string{R"(
+			[]
+		)"});
+		
+		AST_Node* array_node = get_object(json.value);
+
+		REQUIRE(array_node != nullptr);
+		REQUIRE(array_node->properties.size() == 0);
+	}
 	
-	REQUIRE(root_node != nullptr);
-	REQUIRE(root_node->name.compare("ROOT") == 0);
-	REQUIRE(root_node->properties.size() == 1);
-	
-	AST_Pair_Node* pair_node = root_node->properties[0];
-	REQUIRE(pair_node->key.compare("nested_array") == 0);
-	REQUIRE(pair_node->value_node.type == Value_Type::ARRAY);
-	REQUIRE(std::get<AST_Node*>(pair_node->value_node.value)->array.size() == 1);
+	SECTION("Naked Array w/ data") {
+		Json json = parse(std::string{R"(
+			[
+				{
+					"a": "test"
+				}
+			]
+		)"});
+		
+		AST_Node* array_node = get_object(json.value);
+
+		REQUIRE(array_node != nullptr);
+		REQUIRE(array_node->properties.size() == 0);
+		REQUIRE(array_node->array.size() == 1);
+	}
 }
 
 TEST_CASE("OBJECT IN ARRAY") {
@@ -160,4 +189,64 @@ TEST_CASE("Expected Errors") {
 		)");
 //		REQUIRE(json.value.type == Value_Type::ERROR);
 	}
+}
+
+
+TEST_CASE("SERIALIZE") {
+	// test serialize of the ship object
+	
+	Json json = parse(load_json_from_file("ship_test.json"));
+	
+	struct Tile {
+		int x;
+		int y;
+		int room;
+		std::map<std::string, bool> walls;
+	};
+
+	struct Room {
+		int id;
+		bool has_system;
+		std::string system_name;
+	};
+
+	struct Ship {
+		std::string name;
+		std::vector<Tile> tiles;
+		std::vector<Room> rooms;
+	};
+
+	Ship ship;
+	ship.name = get_string(json["name"]);
+
+	auto tiles_arr = get_array(json["tiles"]);
+	for (auto tile_data : tiles_arr) {
+		Tile tile;
+		tile.x = get_number(tile_data["x"]);
+		tile.y = get_number(tile_data["y"]);
+		tile.room = get_number(tile_data["room"]);
+
+		AST_Node* walls_obj = get_object(tile_data["walls"]);
+		for (auto wall_data : walls_obj->properties) {
+			tile.walls[wall_data->key] = get_bool(wall_data->value_node);
+		}
+
+		ship.tiles.push_back(tile);
+	}
+
+	auto rooms_arr = get_array(json["rooms"]);
+	for (auto room_data : rooms_arr) {
+		Room room;
+		room.id = get_number(room_data["id"]);
+		room.has_system = get_bool(room_data["has_system"]);
+		room.system_name = get_string(room_data["system_name"]);
+
+		ship.rooms.push_back(room);
+	}
+	
+	REQUIRE(ship.name.compare("json_test_ship") == 0);
+	REQUIRE(ship.tiles.size() == 2);
+	REQUIRE(ship.tiles[0].walls.size() == 4);
+	REQUIRE(ship.rooms.size() == 1);
+	REQUIRE(ship.rooms[0].id == 0);
 }

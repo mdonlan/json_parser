@@ -37,7 +37,7 @@ struct Token {
 };
 
 struct Parser {
-	unsigned int index;
+	unsigned int index = 0;
 	bool eof = false;
 	std::string str;
 	std::vector<Token> tokens;
@@ -69,11 +69,6 @@ struct Basic_Value {
 	Value_Type type;
 	std::variant<std::string, float, bool, AST_Node*, std::vector<Basic_Value>> value;
 	
-	// we need to simplify everything down to just a Value
-	//
-	
-//	std::variant<std::string, float, bool, std::vector<Value>, std::map<std::string, Value>> value; // string, number, bool, array, object
-	
 	Basic_Value operator[](std::string key);
 	Basic_Value operator[](int i);
 };
@@ -93,11 +88,6 @@ struct AST_Pair_Node {
 	std::string key;
 	Basic_Value value_node;
 	AST_Node* parent;
-};
-
-struct AST {
-//	AST_Node* root;
-//	Value value = {.type = Value_Type::NULL_TYPE};
 };
 
 struct Json {
@@ -127,13 +117,11 @@ char peek(Parser* parser, unsigned int index);
 void eat_whitespace(Parser* parser);
 Json parse_tokens(std::vector<Token>& tokens);
 const std::string load_json_from_file(const std::string& file_name);
-
 //void print_ast(AST* ast);
 //void pretty_print(int indent, Print_Type type, Print_Data data, bool new_line = true);
 void print_object(AST_Node* node, int indent);
 void print_array(std::vector<Basic_Value> array, int indent);
 void print_value(Basic_Value value_node, int indent = 0);
-
 std::string get_string(Basic_Value value_node);
 float get_number(Basic_Value value_node);
 std::vector<Basic_Value> get_array(Basic_Value value_node);
