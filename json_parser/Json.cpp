@@ -153,7 +153,7 @@ void eat_whitespace(Parser* parser) {
 	}
 }
 
-Json parse_tokens(std::vector<Token>& tokens) {
+Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 	Json json;
 	int token_index = 0;
 	Token current_token = tokens[token_index];
@@ -163,7 +163,7 @@ Json parse_tokens(std::vector<Token>& tokens) {
 	
 	while (current_token.type != Token_Type::END_OF_FILE) {
 		
-		if (is_valid_syntax(tokens, token_index, err_msg)) {
+		if (is_valid_syntax(tokens, token_index, err_msg, print_error)) {
 			
 		} else {
 			json.value.type = Value_Type::ERROR;
@@ -182,9 +182,14 @@ Json parse_tokens(std::vector<Token>& tokens) {
 					json.value = value;
 					break;
 				}
-				case Token_Type::NUMBER:
-					assert(false);
+				case Token_Type::NUMBER: {
+					Basic_Value value;
+					value.type == Value_Type::NUMBER;
+					value.value = std::get<float>(current_token.value);
+					
+					json.value = value;
 					break;
+				}
 				case Token_Type::BOOL:
 					assert(false);
 					break;
@@ -405,66 +410,66 @@ Json parse_tokens(std::vector<Token>& tokens) {
 	return json;
 }
 
-void print_array(std::vector<Basic_Value> array, int indent) {
-	printf("[\n");
-	for (int i = 0; i < indent + 1; i++) {
-		printf("	");
-	}
-	for (int i = 0; i < array.size(); i++) {
-		Basic_Value& node = array[i];
-		print_value(node);
-		if (i < array.size() - 1) {
-			printf(", ");
-		}
-	}
-	printf("\n");
-	for (int i = 0; i < indent; i++) {
-		printf("	");
-	}
-	printf("]\n");
-}
+//void print_array(std::vector<Basic_Value> array, int indent) {
+//	printf("[\n");
+//	for (int i = 0; i < indent + 1; i++) {
+//		printf("	");
+//	}
+//	for (int i = 0; i < array.size(); i++) {
+//		Basic_Value& node = array[i];
+//		print_value(node);
+//		if (i < array.size() - 1) {
+//			printf(", ");
+//		}
+//	}
+//	printf("\n");
+//	for (int i = 0; i < indent; i++) {
+//		printf("	");
+//	}
+//	printf("]\n");
+//}
 
-void print_key(int indent, std::string_view name) {
-	for (int i = 0; i < indent; i++) {
-		printf("	");
-	}
-	
-	printf("%s: ", name);
-}
+//void print_key(int indent, std::string_view name) {
+//	for (int i = 0; i < indent; i++) {
+//		printf("	");
+//	}
+//	
+//	printf("%s: ", name);
+//}
+//
+//void print_value(Basic_Value value_node, int indent) {
+//	if (indent > 0) {
+//		for (int i = 0; i < indent; i++) {
+//			printf("	");
+//		}
+//	}
+//	if (value_node.type == Value_Type::STRING) {
+//		printf("%s", std::get<std::string>(value_node.value).c_str());
+//	} else if (value_node.type == Value_Type::NUMBER) {
+//		printf("%f", std::get<float>(value_node.value));
+//	} else if (value_node.type == Value_Type::BOOL) {
+//		bool bool_val = std::get<bool>(value_node.value);
+//		if (bool_val) printf("true");
+//		else printf("false");
+//	}
+//}
 
-void print_value(Basic_Value value_node, int indent) {
-	if (indent > 0) {
-		for (int i = 0; i < indent; i++) {
-			printf("	");
-		}
-	}
-	if (value_node.type == Value_Type::STRING) {
-		printf("%s", std::get<std::string>(value_node.value).c_str());
-	} else if (value_node.type == Value_Type::NUMBER) {
-		printf("%f", std::get<float>(value_node.value));
-	} else if (value_node.type == Value_Type::BOOL) {
-		bool bool_val = std::get<bool>(value_node.value);
-		if (bool_val) printf("true");
-		else printf("false");
-	}
-}
-
-void print_object(AST_Node* node, int indent) {
-	for (AST_Pair_Node* pair_node : node->properties) {
-		print_key(indent, pair_node->key);
-		
-		if (pair_node->value_node.type == Value_Type::OBJECT) {
-			indent++;
-			printf("\n");
-		}
-		else if (pair_node->value_node.type == Value_Type::ARRAY) {
-			print_array(std::get<std::vector<Basic_Value>>(pair_node->value_node.value), indent);
-		} else {
-			print_value(pair_node->value_node, indent);
-			printf("\n");
-		}
-	}
-}
+//void print_object(AST_Node* node, int indent) {
+//	for (AST_Pair_Node* pair_node : node->properties) {
+//		print_key(indent, pair_node->key);
+//		
+//		if (pair_node->value_node.type == Value_Type::OBJECT) {
+//			indent++;
+//			printf("\n");
+//		}
+//		else if (pair_node->value_node.type == Value_Type::ARRAY) {
+//			print_array(std::get<std::vector<Basic_Value>>(pair_node->value_node.value), indent);
+//		} else {
+//			print_value(pair_node->value_node, indent);
+//			printf("\n");
+//		}
+//	}
+//}
 
 void lex(Parser* parser) {
 	while (!parser->eof) {
@@ -472,12 +477,12 @@ void lex(Parser* parser) {
 	}
 }
 
-Json parse(std::string str) {
+Json parse(std::string str, bool print_error) {
 	Parser* parser = new Parser;
 	parser->str = str;
 	lex(parser);
 	Json json_data;
-	json_data = parse_tokens(parser->tokens);
+	json_data = parse_tokens(parser->tokens, print_error);
 //	json_data.tokens = parser->tokens;
 	delete parser;
 	return json_data;
@@ -505,7 +510,7 @@ Basic_Value Json::operator[](std::string key) {
 	bool searching_for_key = true;
 	AST_Node* current_node;
 	if (this->value.type == Value_Type::OBJECT) {
-		current_node = get_object(this->value);
+		current_node = this->value.to_obj();
 	}
 	
 	int attempts = 0;
@@ -561,28 +566,28 @@ Basic_Value Basic_Value::operator[](int i) {
 	return list[i];
 }
 
-std::string get_string(Basic_Value value_node) {
-	return std::get<std::string>(value_node.value);
-}
+//std::string get_string(Basic_Value value_node) {
+//	return std::get<std::string>(value_node.value);
+//}
 
 float get_number(Basic_Value value_node) {
 	return std::get<float>(value_node.value);
 }
 
-std::vector<Basic_Value> get_array(Basic_Value value_node) {
-	AST_Node* array_node = std::get<AST_Node*>(value_node.value);
-	return array_node->array;
-}
+//std::vector<Basic_Value> get_array(Basic_Value value_node) {
+//	AST_Node* array_node = std::get<AST_Node*>(value_node.value);
+//	return array_node->array;
+//}
 
-AST_Node* get_object(Basic_Value value_node) {
-	return std::get<AST_Node*>(value_node.value);
-}
+//AST_Node* get_object(Basic_Value value_node) {
+//	return std::get<AST_Node*>(value_node.value);
+//}
 
 bool get_bool(Basic_Value value_node) {
 	return std::get<bool>(value_node.value);
 }
 
-bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& err_msg) {
+bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& err_msg, bool print_error) {
 	
 	// grammar/ syntax
 	// { -> NAME
@@ -593,18 +598,19 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 	
 	if (current_token.type == Token_Type::UNTERMINATED_STRING) {
 		err_msg = "Unterminated string found.";
-		json_err(err_msg);
+		json_err(err_msg, print_error);
 		return false;
 	}
 	
 	if (token_index == 0) { // on first token
 		if (current_token.type == Token_Type::OPEN_CURLY_BRACKET ||
 			current_token.type == Token_Type::STRING_VALUE ||
-			current_token.type == Token_Type::OPEN_SQUARE_BRACKET) {
+			current_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
+			current_token.type == Token_Type::NUMBER) {
 			return true;
 		} else {
 			err_msg = "Invalid token at index 0.";
-			json_err(err_msg);
+			json_err(err_msg, print_error);
 		}
 	} else {
 		prev_token = tokens[token_index - 1];
@@ -614,7 +620,7 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 				return true;
 			} else {
 				err_msg = "Invalid token after open_curly_bracket.";
-				json_err(err_msg);
+				json_err(err_msg, print_error);
 			}
 		} else if (prev_token.type == Token_Type::COLON) {
 			if (current_token.type == Token_Type::STRING_VALUE ||
@@ -624,21 +630,21 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 				current_token.type == Token_Type::BOOL) {
 				return true;
 			} else {
-				json_err("Invalid token after colon.");
+				json_err("Invalid token after colon.", print_error);
 			}
 		} else if (current_token.type == Token_Type::COLON) {
 			if (prev_token.type == Token_Type::NAME) {
 				return true;
 			} else {
 				err_msg = "Invalid char ':'.";
-				json_err(err_msg);
+				json_err(err_msg, print_error);
 			}
 		} else if (current_token.type == Token_Type::NAME) {
 			if (prev_token.type == Token_Type::COMMA) {
 				return true;
 			} else {
 				err_msg = "Invalid token before a Name.";
-				json_err(err_msg);
+				json_err(err_msg, print_error);
 			}
 		} else if (current_token.type == Token_Type::COMMA) {
 			if (prev_token.type == Token_Type::NUMBER ||
@@ -649,7 +655,7 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 				return true;
 			} else {
 				err_msg = "Invalid token ','.";
-				json_err(err_msg);
+				json_err(err_msg, print_error);
 			}
 		} else if (current_token.type == Token_Type::CLOSED_CURLY_BRACKET) {
 			if (prev_token.type == Token_Type::NUMBER ||
@@ -660,7 +666,7 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 				return true;
 			} else {
 				err_msg = "Invalid token '}'.";
-				json_err(err_msg);
+				json_err(err_msg, print_error);
 			}
 		} else if (current_token.type == Token_Type::STRING_VALUE) {
 			if (prev_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
@@ -669,7 +675,7 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 				return true;
 			} else {
 				err_msg = "Invalid token before String Value.";
-				json_err(err_msg);
+				json_err(err_msg, print_error);
 			}
 		} else if (current_token.type == Token_Type::CLOSED_SQUARE_BRACKET) {
 			if (prev_token.type == Token_Type::STRING_VALUE ||
@@ -680,14 +686,14 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 				return true;
 			} else {
 				err_msg = "Invalid token ']'.";
-				json_err(err_msg);
+				json_err(err_msg, print_error);
 			}
 		} else if (current_token.type == Token_Type::OPEN_SQUARE_BRACKET) {
 			if (prev_token.type == Token_Type::OPEN_SQUARE_BRACKET) {
 				return true;
 			} else {
 				err_msg = "Invalid token '['.";
-				json_err(err_msg);
+				json_err(err_msg, print_error);
 			}
 		} else if (current_token.type == Token_Type::OPEN_CURLY_BRACKET) {
 			if (prev_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
@@ -695,7 +701,7 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 				return true;
 			} else {
 				err_msg = "Invalid token '{'.";
-				json_err(err_msg);
+				json_err(err_msg, print_error);
 			}
 		}
 	}
@@ -706,6 +712,32 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 	return false;
 }
 
-void json_err(const std::string& err_msg) {
-	printf("JSON_ERROR: %s\n", err_msg.c_str());
+void json_err(const std::string& err_msg, bool print_error) {
+	if (print_error) {
+		printf("JSON_ERROR: %s\n", err_msg.c_str());
+	}
+}
+
+const std::string Basic_Value::to_str() {
+	return std::get<std::string>(this->value);
+}
+
+float Basic_Value::to_float() {
+	return std::get<float>(this->value);
+}
+
+int Basic_Value::to_int() {
+	return (int)std::get<float>(this->value);
+}
+
+std::vector<Basic_Value> Basic_Value::to_array() {
+	AST_Node* array_node = std::get<AST_Node*>(this->value);
+	return array_node->array;
+}
+
+AST_Node* Basic_Value::to_obj() {
+	return std::get<AST_Node*>(this->value);
+}
+bool Basic_Value::to_bool() {
+	return std::get<bool>(this->value);
 }

@@ -21,6 +21,8 @@
 //namespace fs = std::filesystem;
 
 int main(int argc, const char * argv[]) {
+	
+//	Json json = parse(load_json_from_file("ship_test_2.json"));
 
 #if DEVMODE
 	int result = Catch::Session().run(argc, argv);

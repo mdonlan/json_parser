@@ -13,7 +13,7 @@
 
 TEST_CASE( "\nBasic Test\n", "[basic]" ) {
 	Json json = parse(load_json_from_file("json_test.json"));
-	AST_Node* root_node = get_object(json.value);
+	AST_Node* root_node = json.value.to_obj();
 
 	REQUIRE(root_node != nullptr);
 	REQUIRE(root_node->name.compare("ROOT") == 0);
@@ -43,7 +43,7 @@ TEST_CASE("ARRAY TESTS") {
 		)"});
 		
 	//	AST_Node* root_node = json_data.ast->root;
-		AST_Node* root_node = get_object(json.value);
+		AST_Node* root_node = json.value.to_obj();
 		
 		REQUIRE(root_node != nullptr);
 		REQUIRE(root_node->name.compare("ROOT") == 0);
@@ -60,7 +60,7 @@ TEST_CASE("ARRAY TESTS") {
 			[]
 		)"});
 		
-		AST_Node* array_node = get_object(json.value);
+		AST_Node* array_node = json.value.to_obj();
 
 		REQUIRE(array_node != nullptr);
 		REQUIRE(array_node->properties.size() == 0);
@@ -71,15 +71,18 @@ TEST_CASE("ARRAY TESTS") {
 			[
 				{
 					"a": "test"
+				},
+				{
+					"b": "blah"
 				}
 			]
 		)"});
 		
-		AST_Node* array_node = get_object(json.value);
+		AST_Node* array_node = json.value.to_obj();
 
 		REQUIRE(array_node != nullptr);
 		REQUIRE(array_node->properties.size() == 0);
-		REQUIRE(array_node->array.size() == 1);
+		REQUIRE(array_node->array.size() == 2);
 	}
 }
 
@@ -95,7 +98,7 @@ TEST_CASE("OBJECT IN ARRAY") {
 	)"});
 
 //	AST_Node* root_node = json_data.ast->root;
-	AST_Node* root_node = get_object(json.value);
+	AST_Node* root_node = json.value.to_obj();
 
 	REQUIRE(root_node != nullptr);
 	REQUIRE(root_node->name.compare("ROOT") == 0);
@@ -153,7 +156,7 @@ TEST_CASE("COMPLEX") {
 		}
 	)"});
 
-	AST_Node* root_node = get_object(json.value);
+	AST_Node* root_node = json.value.to_obj();
 
 	REQUIRE(root_node != nullptr);
 	REQUIRE(root_node->name.compare("ROOT") == 0);
@@ -166,18 +169,19 @@ TEST_CASE("STRING") {
 		Json json = parse(std::string{R"("abc")"});
 		
 		REQUIRE(json.value.type == Value_Type::STRING);
-		REQUIRE(get_string(json.value).compare("abc") == 0);
+//		REQUIRE(get_string(json.value).compare("abc") == 0);
+		REQUIRE(json.value.to_str().compare("abc") == 0);
 	}
 }
 
 TEST_CASE("Expected Errors") {
 	SECTION("Invalid Starting Token") {
-		Json json = parse(":");
+		Json json = parse(":", false);
 		REQUIRE(json.value.type == Value_Type::ERROR);
 	}
 	
 	SECTION("Unterminated String") {
-		Json json = parse(R"("hello)");
+		Json json = parse(R"("hello)", false);
 		REQUIRE(json.value.type == Value_Type::ERROR);
 	}
 	
@@ -186,7 +190,7 @@ TEST_CASE("Expected Errors") {
 			{
 				"a": "test
 			}
-		)");
+		)", false);
 //		REQUIRE(json.value.type == Value_Type::ERROR);
 	}
 }
@@ -217,29 +221,30 @@ TEST_CASE("SERIALIZE") {
 	};
 
 	Ship ship;
-	ship.name = get_string(json["name"]);
+//	ship.name = get_string(json["name"]);
+	ship.name = json["name"].to_str();
 
-	auto tiles_arr = get_array(json["tiles"]);
+	auto tiles_arr = json["tiles"].to_array();
 	for (auto tile_data : tiles_arr) {
 		Tile tile;
-		tile.x = get_number(tile_data["x"]);
-		tile.y = get_number(tile_data["y"]);
-		tile.room = get_number(tile_data["room"]);
+		tile.x = tile_data["x"].to_int();
+		tile.y = tile_data["y"].to_int();
+		tile.room = tile_data["room"].to_int();
 
-		AST_Node* walls_obj = get_object(tile_data["walls"]);
+		AST_Node* walls_obj = tile_data["walls"].to_obj();
 		for (auto wall_data : walls_obj->properties) {
-			tile.walls[wall_data->key] = get_bool(wall_data->value_node);
+			tile.walls[wall_data->key] = wall_data->value_node.to_bool();
 		}
 
 		ship.tiles.push_back(tile);
 	}
 
-	auto rooms_arr = get_array(json["rooms"]);
+	auto rooms_arr = json["rooms"].to_array();
 	for (auto room_data : rooms_arr) {
 		Room room;
-		room.id = get_number(room_data["id"]);
-		room.has_system = get_bool(room_data["has_system"]);
-		room.system_name = get_string(room_data["system_name"]);
+		room.id = room_data["id"].to_int();
+		room.has_system = room_data["has_system"].to_bool();
+		room.system_name = room_data["system_name"].to_str();
 
 		ship.rooms.push_back(room);
 	}
@@ -249,4 +254,18 @@ TEST_CASE("SERIALIZE") {
 	REQUIRE(ship.tiles[0].walls.size() == 4);
 	REQUIRE(ship.rooms.size() == 1);
 	REQUIRE(ship.rooms[0].id == 0);
+}
+
+TEST_CASE("NUMBERS") {
+	SECTION("Naked number") {
+//		Json json = parse(std::string(R"(3)"));
+//
+//		REQUIRE(json.value.type == Value_Type::NUMBER);
+	}
+	
+	SECTION("INT vs float") {
+//		Json json = parse(std::string(R"({"test": 7.25})"));
+//
+//		REQUIRE(json.value.type == Value_Type::NUMBER);
+	}
 }
