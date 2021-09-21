@@ -32,6 +32,8 @@ TEST_CASE( "\nBasic Test\n", "[basic]" ) {
 	REQUIRE(pair_node->key.compare("title") == 0);
 	REQUIRE(pair_node->value_node.type == Value_Type::STRING);
 	REQUIRE(std::get<std::string>(pair_node->value_node.value).compare("delectus aut autem") == 0);
+	
+	json_free(json.value);
 }
 
 TEST_CASE("ARRAY TESTS") {
@@ -53,6 +55,8 @@ TEST_CASE("ARRAY TESTS") {
 		REQUIRE(pair_node->key.compare("nested_array") == 0);
 		REQUIRE(pair_node->value_node.type == Value_Type::ARRAY);
 		REQUIRE(std::get<AST_Node*>(pair_node->value_node.value)->array.size() == 1);
+		
+		json_free(json.value);
 	}
 	
 	SECTION("Naked Array") {
@@ -64,6 +68,8 @@ TEST_CASE("ARRAY TESTS") {
 
 		REQUIRE(array_node != nullptr);
 		REQUIRE(array_node->properties.size() == 0);
+		
+		json_free(json.value);
 	}
 	
 	SECTION("Naked Array w/ data") {
@@ -83,6 +89,8 @@ TEST_CASE("ARRAY TESTS") {
 		REQUIRE(array_node != nullptr);
 		REQUIRE(array_node->properties.size() == 0);
 		REQUIRE(array_node->array.size() == 2);
+		
+		json_free(json.value);
 	}
 }
 
@@ -108,7 +116,7 @@ TEST_CASE("OBJECT IN ARRAY") {
 	REQUIRE(pair_node->key.compare("object_in_arr") == 0);
 	REQUIRE(pair_node->value_node.type == Value_Type::ARRAY);
 
-	V_Node_List& current_array = std::get<AST_Node*>(pair_node->value_node.value)->array;
+	auto current_array = std::get<AST_Node*>(pair_node->value_node.value)->array;
 	REQUIRE(current_array[0].type == Value_Type::OBJECT);
 
 	AST_Node* object = std::get<AST_Node*>(current_array[0].value);
@@ -116,6 +124,8 @@ TEST_CASE("OBJECT IN ARRAY") {
 	REQUIRE(object->properties[0]->key.compare("blah") == 0);
 	REQUIRE(object->properties[0]->value_node.type == Value_Type::STRING);
 	REQUIRE(std::get<std::string>(object->properties[0]->value_node.value).compare("object_1") == 0);
+	
+	json_free(json.value);
 }
 
 TEST_CASE("COMPLEX") {
@@ -162,6 +172,8 @@ TEST_CASE("COMPLEX") {
 	REQUIRE(root_node->name.compare("ROOT") == 0);
 	REQUIRE(root_node->properties.size() == 3);
 //	REQUIRE(json_data["name"].value.as_string())
+	
+	json_free(json.value);
 }
 
 TEST_CASE("STRING") {
@@ -171,6 +183,7 @@ TEST_CASE("STRING") {
 		REQUIRE(json.value.type == Value_Type::STRING);
 //		REQUIRE(get_string(json.value).compare("abc") == 0);
 		REQUIRE(json.value.to_str().compare("abc") == 0);
+		json_free(json.value);
 	}
 }
 
@@ -178,11 +191,15 @@ TEST_CASE("Expected Errors") {
 	SECTION("Invalid Starting Token") {
 		Json json = parse(":", false);
 		REQUIRE(json.value.type == Value_Type::ERROR);
+		
+		json_free(json.value);
 	}
 	
 	SECTION("Unterminated String") {
 		Json json = parse(R"("hello)", false);
 		REQUIRE(json.value.type == Value_Type::ERROR);
+		
+		json_free(json.value);
 	}
 	
 	SECTION("Unterminated String Part 2") {
@@ -192,6 +209,8 @@ TEST_CASE("Expected Errors") {
 			}
 		)", false);
 //		REQUIRE(json.value.type == Value_Type::ERROR);
+		
+		json_free(json.value);
 	}
 }
 
@@ -254,6 +273,8 @@ TEST_CASE("SERIALIZE") {
 	REQUIRE(ship.tiles[0].walls.size() == 4);
 	REQUIRE(ship.rooms.size() == 1);
 	REQUIRE(ship.rooms[0].id == 0);
+	
+	json_free(json.value);
 }
 
 TEST_CASE("NUMBERS") {
@@ -267,5 +288,65 @@ TEST_CASE("NUMBERS") {
 //		Json json = parse(std::string(R"({"test": 7.25})"));
 //
 //		REQUIRE(json.value.type == Value_Type::NUMBER);
+	}
+}
+
+TEST_CASE("BOOLS") {
+	SECTION("Naked bool") {
+		Json json = parse(std::string{R"(
+			true
+		)"});
+		
+		REQUIRE(json.value.type == Value_Type::BOOL);
+		REQUIRE(json.value.to_bool() == true);
+		
+		json_free(json.value);
+	}
+	
+	SECTION("array of bools") {
+		Json json = parse(std::string{R"(
+			[
+				false,
+				true,
+				true
+			]
+		)"});
+		
+		REQUIRE(json.value.type == Value_Type::ARRAY);
+		auto arr = json.value.to_array();
+		REQUIRE(arr.size() == 3);
+		REQUIRE(arr[0].to_bool() == false);
+		
+		json_free(json.value);
+	}
+}
+
+TEST_CASE("Large Files") {
+	SECTION("Parse Large File") {
+		Json json = parse(load_json_from_file("large_test_file_2.json"));
+		json_free(json.value);
+	}
+	
+	SECTION("Test memory free") {
+		Json json = parse(std::string{R"(
+			{
+				"test": "blah",
+				"foo": "bar",
+				{
+					"hello": 1,
+					"world": "yes"
+				}
+			}
+		)"});
+		
+		json_free(json.value);
+	}
+	
+	SECTION("Test Memory Leak") {
+		for (int i = 0; i < 25; i++) {
+			Json json = parse(load_json_from_file("large_test_file_2.json"));
+			json_free(json.value);
+		}
+		int a = 0;
 	}
 }

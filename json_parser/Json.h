@@ -70,7 +70,7 @@ struct Basic_Value {
 	std::variant<std::string, int, float, bool, AST_Node*, std::vector<Basic_Value>> value;
 	
 	Basic_Value operator[](std::string key);
-	Basic_Value operator[](int i);
+//	Basic_Value operator[](int i);
 	const std::string to_str();
 	float to_float();
 	int to_int();
@@ -87,7 +87,7 @@ struct AST_Node {
 	AST_Node* parent;
 };
 
-typedef std::vector<Basic_Value> V_Node_List;
+//typedef std::vector<Basic_Value> V_Node_List;
 
 // should we replace this w/ a map???
 struct AST_Pair_Node {
@@ -100,6 +100,7 @@ struct Json {
 	Basic_Value value = {.type = Value_Type::NULL_TYPE};
 	
 	Basic_Value operator[](std::string key);
+//	~Json();
 };
 
 
@@ -135,5 +136,6 @@ const std::string load_json_from_file(const std::string& file_name);
 //bool get_bool(Basic_Value value_node);
 bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& err_msg, bool print_error);
 void json_err(const std::string& err_msg, bool print_error);
+void json_free(Basic_Value& value);
 
 #endif /* json_h */

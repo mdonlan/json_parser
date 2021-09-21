@@ -87,7 +87,7 @@ void consume(Parser* parser) {
 				}
 			}
 			
-			if (attempts > 1000) {
+			if (attempts > 5000) {
 				assert(false);
 			}
 			attempts++;
@@ -190,9 +190,15 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 					json.value = value;
 					break;
 				}
-				case Token_Type::BOOL:
-					assert(false);
+				case Token_Type::BOOL: {
+					Basic_Value value;
+					value.type = Value_Type::BOOL;
+					value.value = std::get<bool>(current_token.value);
+					
+					json.value = value;
+					
 					break;
+				}
 				case Token_Type::CLOSED_SQUARE_BRACKET:
 					assert(false);
 					break;
@@ -549,22 +555,25 @@ Basic_Value Basic_Value::operator[](std::string key) {
 	
 	return value_node;
 }
-
-Basic_Value Basic_Value::operator[](int i) {
-	if (this->type == Value_Type::ARRAY) {
-		return std::get<AST_Node*>(this->value)->array[i];
-		assert(false);
-	} else if (this->type == Value_Type::OBJECT) {
-		assert(false);
-	} else if (this->type == Value_Type::NUMBER){
-		Basic_Value value_node;
-		value_node.type = Value_Type::ERROR;
-		return value_node;
-	}
-	
-	V_Node_List list = std::get<V_Node_List>(this->value);
-	return list[i];
-}
+//
+//Basic_Value Basic_Value::operator[](int i) {
+//	if (this->type == Value_Type::ARRAY) {
+//		return std::get<AST_Node*>(this->value)->array[i];
+//		assert(false);
+//	} else if (this->type == Value_Type::OBJECT) {
+//		assert(false);
+//	} else if (this->type == Value_Type::NUMBER){
+//		Basic_Value value_node;
+//		value_node.type = Value_Type::ERROR;
+//		return value_node;
+//	} else {
+//		return this->to_array()[i];
+//	}
+//
+////	V_Node_List list = std::get<V_Node_List>(this->value);
+////	return list[i];
+//
+//}
 
 //std::string get_string(Basic_Value value_node) {
 //	return std::get<std::string>(value_node.value);
@@ -588,10 +597,6 @@ bool get_bool(Basic_Value value_node) {
 }
 
 bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& err_msg, bool print_error) {
-	
-	// grammar/ syntax
-	// { -> NAME
-	
 	Token current_token = tokens[token_index];
 //	Token_Type cur_type = current_token.type;
 	Token prev_token;
@@ -606,7 +611,8 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 		if (current_token.type == Token_Type::OPEN_CURLY_BRACKET ||
 			current_token.type == Token_Type::STRING_VALUE ||
 			current_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
-			current_token.type == Token_Type::NUMBER) {
+			current_token.type == Token_Type::NUMBER ||
+			current_token.type == Token_Type::BOOL) {
 			return true;
 		} else {
 			err_msg = "Invalid token at index 0.";
@@ -682,7 +688,8 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 				prev_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
 				prev_token.type == Token_Type::CLOSED_SQUARE_BRACKET ||
 				prev_token.type == Token_Type::CLOSED_CURLY_BRACKET ||
-				prev_token.type == Token_Type::COMMA) {
+				prev_token.type == Token_Type::COMMA ||
+				prev_token.type == Token_Type::BOOL) {
 				return true;
 			} else {
 				err_msg = "Invalid token ']'.";
@@ -703,6 +710,16 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 				err_msg = "Invalid token '{'.";
 				json_err(err_msg, print_error);
 			}
+		} else if (current_token.type == Token_Type::BOOL) {
+			if (prev_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
+				prev_token.type == Token_Type::COMMA) {
+				return true;
+			} else {
+				err_msg = "Unexpectd bool value";
+				json_err(err_msg, print_error);
+			}
+		} else {
+			assert(false);
 		}
 	}
 
@@ -741,3 +758,29 @@ AST_Node* Basic_Value::to_obj() {
 bool Basic_Value::to_bool() {
 	return std::get<bool>(this->value);
 }
+
+void json_free(Basic_Value& value) {
+	if (value.type == Value_Type::OBJECT) {
+		for (auto property : value.to_obj()->properties) {
+			if (property->value_node.type == Value_Type::OBJECT || property->value_node.type == Value_Type::ARRAY) {
+				json_free(property->value_node);
+			}
+		}
+		auto obj = value.to_obj();
+		delete obj;
+		printf("deleted obj\n");
+	} else if (value.type == Value_Type::ARRAY) {
+		for (auto item : value.to_array()) {
+			if (item.type == Value_Type::OBJECT || item.type == Value_Type::ARRAY) {
+				json_free(item);
+			}
+		}
+		auto arr = value.to_obj();
+		delete arr;
+		int a = 0;
+	}
+}
+
+//Json::~Json() {
+////	json_free(this->value);
+//}
