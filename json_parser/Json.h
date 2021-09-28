@@ -59,7 +59,8 @@ enum class Value_Type {
 	OBJECT,
 	ARRAY,
 	ERROR,
-	NULL_TYPE
+	NULL_TYPE,
+	EMPTY
 };
 
 struct Json_Obj;
@@ -70,7 +71,18 @@ struct Basic_Value {
 	std::variant<std::string, int, float, bool, Json_Obj*, std::vector<Basic_Value>> value;
 	
 	Basic_Value operator[](std::string key);
+//	Basic_Value operator=(int i);
 //	Basic_Value operator[](int i);
+	
+//	template <typename T>
+//	void operator=(T value) {
+//		auto json = parse_tokens(value);
+//		int a = 0;
+//	}
+	
+	Basic_Value* operator=(std::string str);
+	Basic_Value operator=(int num);
+	
 	const std::string to_str();
 	float to_float();
 	int to_int();
@@ -97,9 +109,10 @@ struct AST_Pair_Node {
 };
 
 struct Json {
-	Basic_Value value = {.type = Value_Type::NULL_TYPE};
+	Basic_Value value = { .type = Value_Type::NULL_TYPE, .value = 0 };
 	
-	Basic_Value operator[](std::string key);
+	Basic_Value& operator[](std::string key);
+	
 //	~Json();
 };
 

@@ -15,6 +15,20 @@
 int main(int argc, const char * argv[]) {
 	
 	Json json = parse("{}");
+	
+	
+	// problem
+	// we want create a new property w/ the name test and the int value 7
+	// however current our code does
+	// 1. json["test"] -> returns the Basic Value from the property w/ name "test",
+	//		however there is currently no property w/ that name
+	// 2. it then attempts to set the value of that Basic Value to 7
+//	json["test"] = 7;
+	
+//	Basic_Value* value = json["test"];
+	json["test"] = 7;
+	
+	
 	int a = 0;
 	
 #if DEVMODE

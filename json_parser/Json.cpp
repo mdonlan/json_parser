@@ -184,7 +184,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 				}
 				case Token_Type::NUMBER: {
 					Basic_Value value;
-					value.type == Value_Type::NUMBER;
+					value.type = Value_Type::NUMBER;
 					value.value = std::get<float>(current_token.value);
 					
 					json.value = value;
@@ -413,6 +413,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 		token_index++;
 		current_token = tokens[token_index];
 	}
+//	printf("%d\n", json.value.type);
 	return json;
 }
 
@@ -489,6 +490,7 @@ Json parse(std::string str, bool print_error) {
 	lex(parser);
 	Json json_data;
 	json_data = parse_tokens(parser->tokens, print_error);
+//	printf("%d\n", json_data.value.type);
 //	json_data.tokens = parser->tokens;
 	delete parser;
 	return json_data;
@@ -510,29 +512,41 @@ const std::string load_json_from_file(const std::string& file_name) {
 
 // use this overload to access data withing a Json_Data object
 // check for keys that match the string and return their value node
-Basic_Value Json::operator[](std::string key) {
-	Basic_Value value_node;
+// if there is no matching key then return an empty value
+Basic_Value& Json::operator[](std::string key) {
+	
 	//find key
 	bool searching_for_key = true;
 	Json_Obj* current_node;
 	if (this->value.type == Value_Type::OBJECT) {
 		current_node = this->value.to_obj();
 	}
-	
-	int attempts = 0;
-	int max_attempts = 100;
-	while (searching_for_key) {
-		for (AST_Pair_Node* pair_node : current_node->properties) {
-			if (pair_node->key.compare(key) == 0) {
-				value_node = pair_node->value_node;
-				searching_for_key = false;
-			}
+
+	for (AST_Pair_Node* pair_node : current_node->properties) {
+		if (pair_node->key.compare(key) == 0) {
+//			value_node = pair_node->value_node;
+//			return &value_node;
+			return pair_node->value_node;
 		}
-		attempts++;
-		if (attempts > max_attempts) searching_for_key = false;
 	}
 	
-	return value_node;
+	
+	// if we don't find a matching property name then create a empty property with the key
+	
+	AST_Pair_Node* pair_node = new AST_Pair_Node;
+	pair_node->key = key;
+	pair_node->parent = current_node;
+	current_node->properties.push_back(pair_node);
+	
+	Basic_Value value_node;
+	value_node.type = Value_Type::EMPTY;
+	value_node.value = 0;
+	
+	pair_node->value_node = value_node;
+	
+	return pair_node->value_node;
+	
+//	return value_node;
 }
 
 // use this overload to access data withing a AST_Value_Node object
@@ -796,3 +810,14 @@ void json_free(Basic_Value& value) {
 //Json::~Json() {
 ////	json_free(this->value);
 //}
+
+
+Basic_Value Basic_Value::operator=(int num) {
+	std::string str = std::to_string(num);
+	Json json = parse(str);
+	
+	this->type = Value_Type::NUMBER;
+	this->value = json.value.to_int();
+	
+	return json.value;
+}
