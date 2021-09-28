@@ -157,7 +157,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 	Json json;
 	int token_index = 0;
 	Token current_token = tokens[token_index];
-	AST_Node* current_node = nullptr;
+	Json_Obj* current_node = nullptr;
 	AST_Pair_Node* current_pair_node = nullptr;
 	std::string err_msg;
 	
@@ -203,7 +203,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 					assert(false);
 					break;
 				case Token_Type::OPEN_SQUARE_BRACKET: {
-					AST_Node* new_array_node = new AST_Node;
+					Json_Obj* new_array_node = new Json_Obj;
 					new_array_node->type = AST_Node_Type::ARRAY;
 					new_array_node->name = "ARRAY";
 					new_array_node->parent = current_node;
@@ -224,7 +224,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 					break;
 				}
 				case Token_Type::OPEN_CURLY_BRACKET: {
-					AST_Node* new_object_node = new AST_Node;
+					Json_Obj* new_object_node = new Json_Obj;
 					new_object_node->type = AST_Node_Type::OBJECT;
 					new_object_node->name = "ROOT";
 					
@@ -276,7 +276,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 					current_node = current_node->parent;
 					break;
 				case Token_Type::OPEN_SQUARE_BRACKET: {
-					AST_Node* new_array_node = new AST_Node;
+					Json_Obj* new_array_node = new Json_Obj;
 					new_array_node->type = AST_Node_Type::ARRAY;
 					new_array_node->name = "ARRAY";
 					new_array_node->parent = current_node;
@@ -293,7 +293,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 					break;
 				}
 				case Token_Type::OPEN_CURLY_BRACKET: {
-					AST_Node* new_object_node = new AST_Node;
+					Json_Obj* new_object_node = new Json_Obj;
 					new_object_node->type = AST_Node_Type::OBJECT;
 					new_object_node->name = "UNNAMED";
 					new_object_node->parent = current_node;
@@ -315,7 +315,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 				
 				// setup root node
 				if (!current_node) {
-					AST_Node* root_node = new AST_Node;
+					Json_Obj* root_node = new Json_Obj;
 					root_node->type = AST_Node_Type::OBJECT;
 					root_node->name = "ROOT";
 //					ast->root = root_node;
@@ -327,7 +327,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 					pair_node->value_node.type = Value_Type::OBJECT;
 					current_pair_node = pair_node;
 					
-					AST_Node* new_object_node = new AST_Node;
+					Json_Obj* new_object_node = new Json_Obj;
 					new_object_node->type = AST_Node_Type::OBJECT;
 					new_object_node->name = pair_node->key;
 					new_object_node->parent = current_node;
@@ -377,7 +377,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 				pair_node->value_node = value_node;
 			} else if (current_token.type == Token_Type::OPEN_SQUARE_BRACKET) {
 				
-				AST_Node* new_array_node = new AST_Node;
+				Json_Obj* new_array_node = new Json_Obj;
 				new_array_node->type = AST_Node_Type::ARRAY;
 				new_array_node->name = "ARRAY";
 				new_array_node->parent = current_node;
@@ -514,7 +514,7 @@ Basic_Value Json::operator[](std::string key) {
 	Basic_Value value_node;
 	//find key
 	bool searching_for_key = true;
-	AST_Node* current_node;
+	Json_Obj* current_node;
 	if (this->value.type == Value_Type::OBJECT) {
 		current_node = this->value.to_obj();
 	}
@@ -543,7 +543,7 @@ Basic_Value Basic_Value::operator[](std::string key) {
 	if (this->type == Value_Type::ARRAY) {
 		
 	} else if (this->type == Value_Type::OBJECT) {
-		auto node = std::get<AST_Node*>(this->value);
+		auto node = std::get<Json_Obj*>(this->value);
 		for (AST_Pair_Node* pair_node : node->properties) {
 			if (pair_node->key.compare(key) == 0) {
 				return pair_node->value_node;
@@ -621,24 +621,24 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 	} else {
 		prev_token = tokens[token_index - 1];
 		
-		if (prev_token.type == Token_Type::OPEN_CURLY_BRACKET) {
-			if (current_token.type == Token_Type::NAME) {
-				return true;
-			} else {
-				err_msg = "Invalid token after open_curly_bracket.";
-				json_err(err_msg, print_error);
-			}
-		} else if (prev_token.type == Token_Type::COLON) {
-			if (current_token.type == Token_Type::STRING_VALUE ||
-				current_token.type == Token_Type::OPEN_CURLY_BRACKET ||
-				current_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
-				current_token.type == Token_Type::NUMBER ||
-				current_token.type == Token_Type::BOOL) {
-				return true;
-			} else {
-				json_err("Invalid token after colon.", print_error);
-			}
-		} else if (current_token.type == Token_Type::COLON) {
+//		if (prev_token.type == Token_Type::OPEN_CURLY_BRACKET) {
+//			if (current_token.type == Token_Type::NAME) {
+//				return true;
+//			} else {
+//				err_msg = "Invalid token after open_curly_bracket.";
+//				json_err(err_msg, print_error);
+//			}
+//		} else if (prev_token.type == Token_Type::COLON) {
+//			if (current_token.type == Token_Type::STRING_VALUE ||
+//				current_token.type == Token_Type::OPEN_CURLY_BRACKET ||
+//				current_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
+//				current_token.type == Token_Type::NUMBER ||
+//				current_token.type == Token_Type::BOOL) {
+//				return true;
+//			} else {
+//				json_err("Invalid token after colon.", print_error);
+//			}
+		if (current_token.type == Token_Type::COLON) {
 			if (prev_token.type == Token_Type::NAME) {
 				return true;
 			} else {
@@ -646,7 +646,8 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 				json_err(err_msg, print_error);
 			}
 		} else if (current_token.type == Token_Type::NAME) {
-			if (prev_token.type == Token_Type::COMMA) {
+			if (prev_token.type == Token_Type::COMMA ||
+				prev_token.type == Token_Type::OPEN_CURLY_BRACKET) {
 				return true;
 			} else {
 				err_msg = "Invalid token before a Name.";
@@ -668,7 +669,8 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 				prev_token.type == Token_Type::STRING_VALUE ||
 				prev_token.type == Token_Type::BOOL ||
 				prev_token.type == Token_Type::CLOSED_SQUARE_BRACKET ||
-				prev_token.type == Token_Type::CLOSED_CURLY_BRACKET) {
+				prev_token.type == Token_Type::CLOSED_CURLY_BRACKET ||
+				prev_token.type == Token_Type::OPEN_CURLY_BRACKET) {
 				return true;
 			} else {
 				err_msg = "Invalid token '}'.";
@@ -677,7 +679,8 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 		} else if (current_token.type == Token_Type::STRING_VALUE) {
 			if (prev_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
 				prev_token.type == Token_Type::COMMA ||
-				prev_token.type == Token_Type::CLOSED_SQUARE_BRACKET) {
+				prev_token.type == Token_Type::CLOSED_SQUARE_BRACKET ||
+				prev_token.type == Token_Type::COLON) {
 				return true;
 			} else {
 				err_msg = "Invalid token before String Value.";
@@ -696,7 +699,8 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 				json_err(err_msg, print_error);
 			}
 		} else if (current_token.type == Token_Type::OPEN_SQUARE_BRACKET) {
-			if (prev_token.type == Token_Type::OPEN_SQUARE_BRACKET) {
+			if (prev_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
+				prev_token.type == Token_Type::COLON) {
 				return true;
 			} else {
 				err_msg = "Invalid token '['.";
@@ -704,7 +708,8 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 			}
 		} else if (current_token.type == Token_Type::OPEN_CURLY_BRACKET) {
 			if (prev_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
-				prev_token.type == Token_Type::COMMA) {
+				prev_token.type == Token_Type::COMMA ||
+				prev_token.type == Token_Type::COLON) {
 				return true;
 			} else {
 				err_msg = "Invalid token '{'.";
@@ -712,10 +717,18 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 			}
 		} else if (current_token.type == Token_Type::BOOL) {
 			if (prev_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
-				prev_token.type == Token_Type::COMMA) {
+				prev_token.type == Token_Type::COMMA ||
+				prev_token.type == Token_Type::COLON) {
 				return true;
 			} else {
 				err_msg = "Unexpectd bool value";
+				json_err(err_msg, print_error);
+			}
+		} else if (current_token.type == Token_Type::NUMBER) {
+			if (prev_token.type == Token_Type::COLON) {
+				return true;
+			} else {
+				err_msg = "Invalid token before Number";
 				json_err(err_msg, print_error);
 			}
 		} else {
@@ -748,12 +761,12 @@ int Basic_Value::to_int() {
 }
 
 std::vector<Basic_Value> Basic_Value::to_array() {
-	AST_Node* array_node = std::get<AST_Node*>(this->value);
+	Json_Obj* array_node = std::get<Json_Obj*>(this->value);
 	return array_node->array;
 }
 
-AST_Node* Basic_Value::to_obj() {
-	return std::get<AST_Node*>(this->value);
+Json_Obj* Basic_Value::to_obj() {
+	return std::get<Json_Obj*>(this->value);
 }
 bool Basic_Value::to_bool() {
 	return std::get<bool>(this->value);
@@ -768,7 +781,7 @@ void json_free(Basic_Value& value) {
 		}
 		auto obj = value.to_obj();
 		delete obj;
-		printf("deleted obj\n");
+//		printf("deleted obj\n");
 	} else if (value.type == Value_Type::ARRAY) {
 		for (auto item : value.to_array()) {
 			if (item.type == Value_Type::OBJECT || item.type == Value_Type::ARRAY) {
@@ -777,7 +790,6 @@ void json_free(Basic_Value& value) {
 		}
 		auto arr = value.to_obj();
 		delete arr;
-		int a = 0;
 	}
 }
 

@@ -62,12 +62,12 @@ enum class Value_Type {
 	NULL_TYPE
 };
 
-struct AST_Node;
+struct Json_Obj;
 
 
 struct Basic_Value {
 	Value_Type type;
-	std::variant<std::string, int, float, bool, AST_Node*, std::vector<Basic_Value>> value;
+	std::variant<std::string, int, float, bool, Json_Obj*, std::vector<Basic_Value>> value;
 	
 	Basic_Value operator[](std::string key);
 //	Basic_Value operator[](int i);
@@ -75,16 +75,16 @@ struct Basic_Value {
 	float to_float();
 	int to_int();
 	std::vector<Basic_Value> to_array();
-	AST_Node* to_obj();
+	Json_Obj* to_obj();
 	bool to_bool();
 };
 
-struct AST_Node {
+struct Json_Obj {
 	AST_Node_Type type;
 	std::string name;
 	std::vector<AST_Pair_Node*> properties;
 	std::vector<Basic_Value> array;
-	AST_Node* parent;
+	Json_Obj* parent;
 };
 
 //typedef std::vector<Basic_Value> V_Node_List;
@@ -93,7 +93,7 @@ struct AST_Node {
 struct AST_Pair_Node {
 	std::string key;
 	Basic_Value value_node;
-	AST_Node* parent;
+	Json_Obj* parent;
 };
 
 struct Json {

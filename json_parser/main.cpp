@@ -13,6 +13,10 @@
 #define DEVMODE 1
 
 int main(int argc, const char * argv[]) {
+	
+	Json json = parse("{}");
+	int a = 0;
+	
 #if DEVMODE
 	int result = Catch::Session().run(argc, argv);
 	return result;
