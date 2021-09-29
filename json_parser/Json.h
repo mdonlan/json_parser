@@ -81,7 +81,7 @@ struct Basic_Value {
 //	}
 	
 	Basic_Value* operator=(std::string str);
-	Basic_Value operator=(int num);
+	void operator=(int num);
 	
 	const std::string to_str();
 	float to_float();

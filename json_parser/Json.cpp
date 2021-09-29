@@ -517,7 +517,7 @@ Basic_Value& Json::operator[](std::string key) {
 	
 	//find key
 	bool searching_for_key = true;
-	Json_Obj* current_node;
+	Json_Obj* current_node = nullptr;
 	if (this->value.type == Value_Type::OBJECT) {
 		current_node = this->value.to_obj();
 	}
@@ -812,12 +812,12 @@ void json_free(Basic_Value& value) {
 //}
 
 
-Basic_Value Basic_Value::operator=(int num) {
+void Basic_Value::operator=(int num) {
 	std::string str = std::to_string(num);
 	Json json = parse(str);
 	
 	this->type = Value_Type::NUMBER;
-	this->value = json.value.to_int();
+	this->value = json.value.value;
 	
-	return json.value;
+//	return json.value;
 }
