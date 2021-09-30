@@ -861,22 +861,36 @@ void write_json(Json json, std::string filename) {
  
 */
 
-std::string get_string_from_value(Basic_Value value) {
+void do_indent(std::string& str, int indent) {
+	for (int i = 0; i < indent; i++) {
+		str += '\t';
+	}
+}
+
+std::string get_string_from_value(Basic_Value value, int indent) {
 	std::string str;
 	if (value.type == Value_Type::OBJECT) {
-		str += "{\n\t";
+		indent++;
+		str += "{\n";
 		for (auto& prop : value.to_obj()->properties) {
+			do_indent(str, indent);
 			str += "\"";
 			str += prop->key;
 			str += "\"";
 			str += ": ";
-			str += get_string_from_value(prop->value_node);
+			str += get_string_from_value(prop->value_node, indent);
 			
 			if (prop != value.to_obj()->properties.back()) {
-				str += ",\n\t";
+				str += ",\n";
+//				add_indent(str, indent);
 			}
 		}
-		str += "\n}";
+		indent--;
+		str += "\n";
+		do_indent(str, indent);
+		str += '}';
+	
+//		indent--;
 	} else if (value.type == Value_Type::STRING) {
 		str += "\"";
 		str += value.to_str();
@@ -898,7 +912,7 @@ std::string json_to_string(const Json& json) {
 	
 	Basic_Value current_value = json.value;
 	
-	std::string result = get_string_from_value(current_value);
+	std::string result = get_string_from_value(current_value, 0);
 	
 	printf("%s\n", result.c_str());
 	
