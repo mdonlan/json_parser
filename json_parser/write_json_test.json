@@ -1,2 +1,9 @@
-This is a line.
-This is another line.
+{
+	"foo": "hello world!",
+	"blah": "it is wednesday",
+	"yeah": {
+		"test": "blah",
+		"what": 4,
+		"why": 5.700000
+	}
+}

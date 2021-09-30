@@ -153,7 +153,7 @@ void json_free(Basic_Value& value);
 
 void print_value(Basic_Value value);
 
-void write_json(Json json, std::string filename);
+void write_json(std::string json_str, std::string filename);
 std::string json_to_string(const Json& json);
 
 #endif /* json_h */

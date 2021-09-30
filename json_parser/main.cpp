@@ -35,7 +35,7 @@ int main(int argc, const char * argv[]) {
 	)");
 	
 	std::string json_str = json_to_string(json);
-	write_json(json, "write_json_test.json");
+	write_json(json_str, "write_json_test.json");
 	
 #if DEVMODE
 	int result = Catch::Session().run(argc, argv);

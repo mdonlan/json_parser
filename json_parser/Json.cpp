@@ -837,11 +837,10 @@ void print_value(Basic_Value value) {
 	}
 }
 
-void write_json(Json json, std::string filename) {
+void write_json(std::string json_str, std::string filename) {
 	std::ofstream file(filename);
 	  if (file.is_open()) {
-		  file << "This is a line.\n";
-		  file << "This is another line.\n";
+		  file << json_str.c_str();
 		  file.close();
 	  }
 	  else {
@@ -908,7 +907,7 @@ std::string get_string_from_value(Basic_Value value, int indent) {
 
 std::string json_to_string(const Json& json) {
 	
-	std::string json_str;
+//	std::string json_str;
 	
 	Basic_Value current_value = json.value;
 	
@@ -916,5 +915,5 @@ std::string json_to_string(const Json& json) {
 	
 	printf("%s\n", result.c_str());
 	
-	return json_str;
+	return result;
 }
