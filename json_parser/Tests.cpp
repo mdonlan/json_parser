@@ -285,9 +285,11 @@ TEST_CASE("NUMBERS") {
 	}
 	
 	SECTION("INT vs float") {
-//		Json json = parse(std::string(R"({"test": 7.25})"));
-//
-//		REQUIRE(json.value.type == Value_Type::NUMBER);
+		Json json = parse(std::string(R"({"test_float": 7.25, "test_int": 2})"));
+		REQUIRE(json["test_float"].type == Value_Type::NUMBER);
+		REQUIRE(json["test_float"].to_float() == 7.25);
+		REQUIRE(json["test_int"].type == Value_Type::NUMBER);
+		REQUIRE(json["test_int"].to_int() == 2);
 	}
 }
 
@@ -352,19 +354,39 @@ TEST_CASE("Large Files") {
 }
 
 TEST_CASE("Write/Edit Json") {
-	Json json = parse("{}");
+	SECTION("Write Numbers") {
+		Json json = parse("{}");
 
-	REQUIRE(json.value.type == Value_Type::OBJECT);
-	REQUIRE(json.value.to_obj()->properties.size() == 0);
+		REQUIRE(json.value.type == Value_Type::OBJECT);
+		REQUIRE(json.value.to_obj()->properties.size() == 0);
 
-	json["foo"] = 3;
-	REQUIRE(json["foo"].to_int() == 3);
+		json["foo"] = 3;
+		REQUIRE(json["foo"].to_int() == 3);
 
-	REQUIRE(json.value.type == Value_Type::OBJECT);
-	REQUIRE(json.value.to_obj()->properties.size() == 1);
+		REQUIRE(json.value.type == Value_Type::OBJECT);
+		REQUIRE(json.value.to_obj()->properties.size() == 1);
 
-	Basic_Value value = json["foo"];
+		Basic_Value value = json["foo"];
 
-	REQUIRE(value.type == Value_Type::NUMBER);
-	REQUIRE(value.to_int() == 3);
+		REQUIRE(value.type == Value_Type::NUMBER);
+		REQUIRE(value.to_int() == 3);
+	}
+	
+	SECTION("Write Strings") {
+		Json json = parse("{}");
+
+		REQUIRE(json.value.type == Value_Type::OBJECT);
+		REQUIRE(json.value.to_obj()->properties.size() == 0);
+
+		json["foo"] = "hello world";
+		REQUIRE(json["foo"].to_str().compare("hello world") == 0);
+
+		REQUIRE(json.value.type == Value_Type::OBJECT);
+		REQUIRE(json.value.to_obj()->properties.size() == 1);
+
+		Basic_Value value = json["foo"];
+
+		REQUIRE(value.type == Value_Type::STRING);
+		REQUIRE(json["foo"].to_str().compare("hello world") == 0);
+	}
 }

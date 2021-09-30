@@ -80,7 +80,7 @@ struct Basic_Value {
 //		int a = 0;
 //	}
 	
-	Basic_Value* operator=(std::string str);
+	void operator=(std::string str);
 	void operator=(int num);
 	
 	const std::string to_str();
@@ -150,5 +150,10 @@ const std::string load_json_from_file(const std::string& file_name);
 bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& err_msg, bool print_error);
 void json_err(const std::string& err_msg, bool print_error);
 void json_free(Basic_Value& value);
+
+void print_value(Basic_Value value);
+
+void write_json(Json json, std::string filename);
+std::string json_to_string(const Json& json);
 
 #endif /* json_h */

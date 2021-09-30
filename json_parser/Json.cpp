@@ -7,6 +7,7 @@
 
 #include "Json.h"
 #include <fstream>
+#include <math.h>
 
 void consume(Parser* parser) {
 	eat_whitespace(parser);
@@ -106,7 +107,7 @@ void consume(Parser* parser) {
 		
 		while (!found_end_of_number) {
 			char pc = peek(parser, p_index);
-			if (!isdigit(pc)) {
+			if (!isdigit(pc) && pc != '.') {
 				found_end_of_number = true;
 			} else {
 				num_str += pc;
@@ -818,6 +819,88 @@ void Basic_Value::operator=(int num) {
 	
 	this->type = Value_Type::NUMBER;
 	this->value = json.value.value;
+}
+
+void Basic_Value::operator=(std::string str) {
+	std::string wrapped_str = '\"' + str + '\"'; // we need to wrap the string in quotes for the parser to view it as a string
+	Json json = parse(wrapped_str);
 	
-//	return json.value;
+	this->type = Value_Type::STRING;
+	this->value = json.value.value;
+}
+
+void print_value(Basic_Value value) {
+	if (value.type == Value_Type::STRING) {
+		printf("%s\n", value.to_str().c_str());
+	} else if (value.type == Value_Type::NUMBER) {
+		printf("%d\n", value.to_int());
+	}
+}
+
+void write_json(Json json, std::string filename) {
+	std::ofstream file(filename);
+	  if (file.is_open()) {
+		  file << "This is a line.\n";
+		  file << "This is another line.\n";
+		  file.close();
+	  }
+	  else {
+		  printf("Unable to open file.\n");
+	  }
+}
+
+
+/*
+
+	how to go from json -> string
+	
+	option #1
+		walk through values and get a string for each of them based on type
+	option #2
+		Create tokens
+ 
+*/
+
+std::string get_string_from_value(Basic_Value value) {
+	std::string str;
+	if (value.type == Value_Type::OBJECT) {
+		str += "{\n\t";
+		for (auto& prop : value.to_obj()->properties) {
+			str += "\"";
+			str += prop->key;
+			str += "\"";
+			str += ": ";
+			str += get_string_from_value(prop->value_node);
+			
+			if (prop != value.to_obj()->properties.back()) {
+				str += ",\n\t";
+			}
+		}
+		str += "\n}";
+	} else if (value.type == Value_Type::STRING) {
+		str += "\"";
+		str += value.to_str();
+		str += "\"";
+	} else if (value.type == Value_Type::NUMBER) {
+		if (value.to_float() == ceil(value.to_float())) {
+			str += std::to_string(value.to_int());
+		} else {
+			str += std::to_string(value.to_float());
+		}
+	}
+	
+	return str;
+}
+
+std::string json_to_string(const Json& json) {
+	
+	std::string json_str;
+	
+	Basic_Value current_value = json.value;
+	
+	std::string result = get_string_from_value(current_value);
+	
+	printf("%s\n", result.c_str());
+	
+	return json_str;
 }
