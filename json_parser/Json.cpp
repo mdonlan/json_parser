@@ -33,14 +33,12 @@ void consume(Parser* parser) {
 		parser->tokens.push_back(token);
 		parser->index++;
 	} else if (c == '[') {
-		// start of array of items
 		Token token;
 		token.type = Token_Type::OPEN_SQUARE_BRACKET;
 		token.value = '[';
 		parser->tokens.push_back(token);
 		parser->index++;
 	} else if (c == ']') {
-		// end of array of items
 		Token token;
 		token.type = Token_Type::CLOSED_SQUARE_BRACKET;
 		token.value = ']';
@@ -213,15 +211,9 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 					value.type = Value_Type::ARRAY;
 					value.value = new_array_node;
 					
-					// since we are in array section push as new item in array
-//					assert(current_node->type == AST_Node_Type::ARRAY);
-//					current_node->array.push_back(value);
-					
 					current_node = new_array_node;
 					json.value = value;
-//					break;
 					
-//					assert(false);
 					break;
 				}
 				case Token_Type::OPEN_CURLY_BRACKET: {
@@ -319,7 +311,6 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 					Json_Obj* root_node = new Json_Obj;
 					root_node->type = AST_Node_Type::OBJECT;
 					root_node->name = "ROOT";
-//					ast->root = root_node;
 					json.value.value = root_node;
 					current_node = root_node;
 				} else {
@@ -409,75 +400,12 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 			}
 		}
 		
-		
-		
 		token_index++;
 		current_token = tokens[token_index];
 	}
-//	printf("%d\n", json.value.type);
+
 	return json;
 }
-
-//void print_array(std::vector<Basic_Value> array, int indent) {
-//	printf("[\n");
-//	for (int i = 0; i < indent + 1; i++) {
-//		printf("	");
-//	}
-//	for (int i = 0; i < array.size(); i++) {
-//		Basic_Value& node = array[i];
-//		print_value(node);
-//		if (i < array.size() - 1) {
-//			printf(", ");
-//		}
-//	}
-//	printf("\n");
-//	for (int i = 0; i < indent; i++) {
-//		printf("	");
-//	}
-//	printf("]\n");
-//}
-
-//void print_key(int indent, std::string_view name) {
-//	for (int i = 0; i < indent; i++) {
-//		printf("	");
-//	}
-//	
-//	printf("%s: ", name);
-//}
-//
-//void print_value(Basic_Value value_node, int indent) {
-//	if (indent > 0) {
-//		for (int i = 0; i < indent; i++) {
-//			printf("	");
-//		}
-//	}
-//	if (value_node.type == Value_Type::STRING) {
-//		printf("%s", std::get<std::string>(value_node.value).c_str());
-//	} else if (value_node.type == Value_Type::NUMBER) {
-//		printf("%f", std::get<float>(value_node.value));
-//	} else if (value_node.type == Value_Type::BOOL) {
-//		bool bool_val = std::get<bool>(value_node.value);
-//		if (bool_val) printf("true");
-//		else printf("false");
-//	}
-//}
-
-//void print_object(AST_Node* node, int indent) {
-//	for (AST_Pair_Node* pair_node : node->properties) {
-//		print_key(indent, pair_node->key);
-//		
-//		if (pair_node->value_node.type == Value_Type::OBJECT) {
-//			indent++;
-//			printf("\n");
-//		}
-//		else if (pair_node->value_node.type == Value_Type::ARRAY) {
-//			print_array(std::get<std::vector<Basic_Value>>(pair_node->value_node.value), indent);
-//		} else {
-//			print_value(pair_node->value_node, indent);
-//			printf("\n");
-//		}
-//	}
-//}
 
 void lex(Parser* parser) {
 	while (!parser->eof) {
@@ -491,8 +419,7 @@ Json parse(std::string str, bool print_error) {
 	lex(parser);
 	Json json_data;
 	json_data = parse_tokens(parser->tokens, print_error);
-//	printf("%d\n", json_data.value.type);
-//	json_data.tokens = parser->tokens;
+	
 	delete parser;
 	return json_data;
 }
@@ -515,7 +442,6 @@ const std::string load_json_from_file(const std::string& file_name) {
 // check for keys that match the string and return their value node
 // if there is no matching key then return an empty value
 Basic_Value& Json::operator[](std::string key) {
-	
 	//find key
 	bool searching_for_key = true;
 	Json_Obj* current_node = nullptr;
@@ -525,15 +451,12 @@ Basic_Value& Json::operator[](std::string key) {
 
 	for (AST_Pair_Node* pair_node : current_node->properties) {
 		if (pair_node->key.compare(key) == 0) {
-//			value_node = pair_node->value_node;
-//			return &value_node;
 			return pair_node->value_node;
 		}
 	}
 	
 	
 	// if we don't find a matching property name then create a empty property with the key
-	
 	AST_Pair_Node* pair_node = new AST_Pair_Node;
 	pair_node->key = key;
 	pair_node->parent = current_node;
@@ -546,8 +469,6 @@ Basic_Value& Json::operator[](std::string key) {
 	pair_node->value_node = value_node;
 	
 	return pair_node->value_node;
-	
-//	return value_node;
 }
 
 // use this overload to access data withing a AST_Value_Node object
@@ -567,45 +488,12 @@ Basic_Value Basic_Value::operator[](std::string key) {
 	}
 	
 	assert(false);
-	
 	return value_node;
 }
-//
-//Basic_Value Basic_Value::operator[](int i) {
-//	if (this->type == Value_Type::ARRAY) {
-//		return std::get<AST_Node*>(this->value)->array[i];
-//		assert(false);
-//	} else if (this->type == Value_Type::OBJECT) {
-//		assert(false);
-//	} else if (this->type == Value_Type::NUMBER){
-//		Basic_Value value_node;
-//		value_node.type = Value_Type::ERROR;
-//		return value_node;
-//	} else {
-//		return this->to_array()[i];
-//	}
-//
-////	V_Node_List list = std::get<V_Node_List>(this->value);
-////	return list[i];
-//
-//}
-
-//std::string get_string(Basic_Value value_node) {
-//	return std::get<std::string>(value_node.value);
-//}
 
 float get_number(Basic_Value value_node) {
 	return std::get<float>(value_node.value);
 }
-
-//std::vector<Basic_Value> get_array(Basic_Value value_node) {
-//	AST_Node* array_node = std::get<AST_Node*>(value_node.value);
-//	return array_node->array;
-//}
-
-//AST_Node* get_object(Basic_Value value_node) {
-//	return std::get<AST_Node*>(value_node.value);
-//}
 
 bool get_bool(Basic_Value value_node) {
 	return std::get<bool>(value_node.value);
@@ -613,7 +501,6 @@ bool get_bool(Basic_Value value_node) {
 
 bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& err_msg, bool print_error) {
 	Token current_token = tokens[token_index];
-//	Token_Type cur_type = current_token.type;
 	Token prev_token;
 	
 	if (current_token.type == Token_Type::UNTERMINATED_STRING) {
@@ -635,24 +522,6 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 		}
 	} else {
 		prev_token = tokens[token_index - 1];
-		
-//		if (prev_token.type == Token_Type::OPEN_CURLY_BRACKET) {
-//			if (current_token.type == Token_Type::NAME) {
-//				return true;
-//			} else {
-//				err_msg = "Invalid token after open_curly_bracket.";
-//				json_err(err_msg, print_error);
-//			}
-//		} else if (prev_token.type == Token_Type::COLON) {
-//			if (current_token.type == Token_Type::STRING_VALUE ||
-//				current_token.type == Token_Type::OPEN_CURLY_BRACKET ||
-//				current_token.type == Token_Type::OPEN_SQUARE_BRACKET ||
-//				current_token.type == Token_Type::NUMBER ||
-//				current_token.type == Token_Type::BOOL) {
-//				return true;
-//			} else {
-//				json_err("Invalid token after colon.", print_error);
-//			}
 		if (current_token.type == Token_Type::COLON) {
 			if (prev_token.type == Token_Type::NAME) {
 				return true;
@@ -796,7 +665,6 @@ void json_free(Basic_Value& value) {
 		}
 		auto obj = value.to_obj();
 		delete obj;
-//		printf("deleted obj\n");
 	} else if (value.type == Value_Type::ARRAY) {
 		for (auto item : value.to_array()) {
 			if (item.type == Value_Type::OBJECT || item.type == Value_Type::ARRAY) {
@@ -807,11 +675,6 @@ void json_free(Basic_Value& value) {
 		delete arr;
 	}
 }
-
-//Json::~Json() {
-////	json_free(this->value);
-//}
-
 
 void Basic_Value::operator=(int num) {
 	std::string str = std::to_string(num);
@@ -848,18 +711,6 @@ void write_json(std::string json_str, std::string filename) {
 	  }
 }
 
-
-/*
-
-	how to go from json -> string
-	
-	option #1
-		walk through values and get a string for each of them based on type
-	option #2
-		Create tokens
- 
-*/
-
 void do_indent(std::string& str, int indent) {
 	for (int i = 0; i < indent; i++) {
 		str += '\t';
@@ -881,15 +732,12 @@ std::string get_string_from_value(Basic_Value value, int indent) {
 			
 			if (prop != value.to_obj()->properties.back()) {
 				str += ",\n";
-//				add_indent(str, indent);
 			}
 		}
 		indent--;
 		str += "\n";
 		do_indent(str, indent);
 		str += '}';
-	
-//		indent--;
 	} else if (value.type == Value_Type::STRING) {
 		str += "\"";
 		str += value.to_str();
@@ -906,14 +754,8 @@ std::string get_string_from_value(Basic_Value value, int indent) {
 }
 
 std::string json_to_string(const Json& json) {
-	
-//	std::string json_str;
-	
 	Basic_Value current_value = json.value;
-	
 	std::string result = get_string_from_value(current_value, 0);
-	
 	printf("%s\n", result.c_str());
-	
 	return result;
 }

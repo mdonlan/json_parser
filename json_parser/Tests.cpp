@@ -389,4 +389,8 @@ TEST_CASE("Write/Edit Json") {
 		REQUIRE(value.type == Value_Type::STRING);
 		REQUIRE(json["foo"].to_str().compare("hello world") == 0);
 	}
+	
+	SECTION("Write to file") {
+		
+	}
 }

@@ -89,6 +89,8 @@ struct Basic_Value {
 	std::vector<Basic_Value> to_array();
 	Json_Obj* to_obj();
 	bool to_bool();
+	
+	
 };
 
 struct Json_Obj {
@@ -155,5 +157,7 @@ void print_value(Basic_Value value);
 
 void write_json(std::string json_str, std::string filename);
 std::string json_to_string(const Json& json);
+
+
 
 #endif /* json_h */
