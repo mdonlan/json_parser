@@ -56,6 +56,25 @@ void consume(Parser* parser) {
 		token.value = ',';
 		parser->tokens.push_back(token);
 		parser->index++;
+	} else if (c == '/') {
+		if (peek(parser, parser->index + 1) == '/') {
+			// we found the start of a comment, read until end of line char, then throw away? do we want to keep comments?
+			std::string str = "/"; // add starting /
+			unsigned int p_index = parser->index + 1;
+			bool found_end = false;
+			while (!found_end) {
+				char pc = peek(parser, p_index);
+				if (pc == '\n' || pc == '\r') {
+					found_end = true;
+				} else {
+					str += pc;
+					p_index++;
+				}
+			}
+			
+			parser->index = p_index;
+//			printf("comment str: %s\n", str.c_str());
+		}
 	} else if (c == '"') { // name/decl token or string value token
 		Token token;
 		std::string str;
@@ -174,7 +193,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 		if (current_node == nullptr) {
 			switch (current_token.type) {
 				case Token_Type::STRING_VALUE: {
-					Basic_Value value;
+					Json_Value value;
 					value.type = Value_Type::STRING;
 					value.value = std::get<std::string>(current_token.value);
 			
@@ -182,7 +201,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 					break;
 				}
 				case Token_Type::NUMBER: {
-					Basic_Value value;
+					Json_Value value;
 					value.type = Value_Type::NUMBER;
 					value.value = std::get<float>(current_token.value);
 					
@@ -190,7 +209,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 					break;
 				}
 				case Token_Type::BOOL: {
-					Basic_Value value;
+					Json_Value value;
 					value.type = Value_Type::BOOL;
 					value.value = std::get<bool>(current_token.value);
 					
@@ -207,7 +226,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 					new_array_node->name = "ARRAY";
 					new_array_node->parent = current_node;
 					
-					Basic_Value value;
+					Json_Value value;
 					value.type = Value_Type::ARRAY;
 					value.value = new_array_node;
 					
@@ -221,7 +240,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 					new_object_node->type = AST_Node_Type::OBJECT;
 					new_object_node->name = "ROOT";
 					
-					Basic_Value value;
+					Json_Value value;
 					value.type = Value_Type::OBJECT;
 					value.value = new_object_node;
 					json.value = value;
@@ -247,7 +266,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 			}
 		} // handle arrays
 		else if (current_node && current_node->type == AST_Node_Type::ARRAY) {
-			Basic_Value value_node;
+			Json_Value value_node;
 			
 			switch (current_token.type) {
 				case Token_Type::STRING_VALUE:
@@ -342,7 +361,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 				
 				AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
 				
-				Basic_Value value_node;
+				Json_Value value_node;
 				value_node.type = Value_Type::STRING;
 				value_node.value = std::get<std::string>(current_token.value);
 				
@@ -352,7 +371,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 				
 				AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
 				
-				Basic_Value value_node;
+				Json_Value value_node;
 				value_node.type = Value_Type::NUMBER;
 				value_node.value = std::get<float>(current_token.value);
 				
@@ -362,7 +381,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 				
 				AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
 				
-				Basic_Value value_node;
+				Json_Value value_node;
 				value_node.type = Value_Type::BOOL;
 				value_node.value = std::get<bool>(current_token.value);
 				
@@ -379,8 +398,7 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 				
 				current_node = new_array_node;
 			} else if (current_token.type == Token_Type::CLOSED_SQUARE_BRACKET) {
-				int a = 0;
-//				assert(false); // we shouldn't hit here becuase we should deal w/ this in the in_array section
+				assert(false); // we shouldn't hit here becuase we should deal w/ this in the in_array section
 			} else if (current_token.type == Token_Type::CLOSED_CURLY_BRACKET) {
 				// end of object, set the parent as the current node
 				if (current_node->parent) {
@@ -441,9 +459,7 @@ const std::string load_json_from_file(const std::string& file_name) {
 // use this overload to access data withing a Json_Data object
 // check for keys that match the string and return their value node
 // if there is no matching key then return an empty value
-Basic_Value& Json::operator[](std::string key) {
-	//find key
-	bool searching_for_key = true;
+Json_Value& Json::operator[](std::string key) {
 	Json_Obj* current_node = nullptr;
 	if (this->value.type == Value_Type::OBJECT) {
 		current_node = this->value.to_obj();
@@ -455,14 +471,13 @@ Basic_Value& Json::operator[](std::string key) {
 		}
 	}
 	
-	
 	// if we don't find a matching property name then create a empty property with the key
 	AST_Pair_Node* pair_node = new AST_Pair_Node;
 	pair_node->key = key;
 	pair_node->parent = current_node;
 	current_node->properties.push_back(pair_node);
 	
-	Basic_Value value_node;
+	Json_Value value_node;
 	value_node.type = Value_Type::EMPTY;
 	value_node.value = 0;
 	
@@ -473,8 +488,8 @@ Basic_Value& Json::operator[](std::string key) {
 
 // use this overload to access data withing a AST_Value_Node object
 // check for keys that match the string and return their value node
-Basic_Value Basic_Value::operator[](std::string key) {
-	Basic_Value value_node;
+Json_Value Json_Value::operator[](std::string key) {
+	Json_Value value_node;
 	
 	if (this->type == Value_Type::ARRAY) {
 		
@@ -491,11 +506,11 @@ Basic_Value Basic_Value::operator[](std::string key) {
 	return value_node;
 }
 
-float get_number(Basic_Value value_node) {
+float get_number(Json_Value value_node) {
 	return std::get<float>(value_node.value);
 }
 
-bool get_bool(Basic_Value value_node) {
+bool get_bool(Json_Value value_node) {
 	return std::get<bool>(value_node.value);
 }
 
@@ -632,31 +647,31 @@ void json_err(const std::string& err_msg, bool print_error) {
 	}
 }
 
-const std::string Basic_Value::to_str() {
+const std::string Json_Value::to_str() {
 	return std::get<std::string>(this->value);
 }
 
-float Basic_Value::to_float() {
+float Json_Value::to_float() {
 	return std::get<float>(this->value);
 }
 
-int Basic_Value::to_int() {
+int Json_Value::to_int() {
 	return (int)std::get<float>(this->value);
 }
 
-std::vector<Basic_Value> Basic_Value::to_array() {
+std::vector<Json_Value> Json_Value::to_array() {
 	Json_Obj* array_node = std::get<Json_Obj*>(this->value);
 	return array_node->array;
 }
 
-Json_Obj* Basic_Value::to_obj() {
+Json_Obj* Json_Value::to_obj() {
 	return std::get<Json_Obj*>(this->value);
 }
-bool Basic_Value::to_bool() {
+bool Json_Value::to_bool() {
 	return std::get<bool>(this->value);
 }
 
-void json_free(Basic_Value& value) {
+void json_free(Json_Value& value) {
 	if (value.type == Value_Type::OBJECT) {
 		for (auto property : value.to_obj()->properties) {
 			if (property->value_node.type == Value_Type::OBJECT || property->value_node.type == Value_Type::ARRAY) {
@@ -676,7 +691,7 @@ void json_free(Basic_Value& value) {
 	}
 }
 
-void Basic_Value::operator=(int num) {
+void Json_Value::operator=(int num) {
 	std::string str = std::to_string(num);
 	Json json = parse(str);
 	
@@ -684,7 +699,7 @@ void Basic_Value::operator=(int num) {
 	this->value = json.value.value;
 }
 
-void Basic_Value::operator=(std::string str) {
+void Json_Value::operator=(std::string str) {
 	std::string wrapped_str = '\"' + str + '\"'; // we need to wrap the string in quotes for the parser to view it as a string
 	Json json = parse(wrapped_str);
 	
@@ -692,7 +707,7 @@ void Basic_Value::operator=(std::string str) {
 	this->value = json.value.value;
 }
 
-void print_value(Basic_Value value) {
+void print_value(Json_Value value) {
 	if (value.type == Value_Type::STRING) {
 		printf("%s\n", value.to_str().c_str());
 	} else if (value.type == Value_Type::NUMBER) {
@@ -717,7 +732,7 @@ void do_indent(std::string& str, int indent) {
 	}
 }
 
-std::string get_string_from_value(Basic_Value value, int indent) {
+std::string get_string_from_value(Json_Value value, int indent) {
 	std::string str;
 	if (value.type == Value_Type::OBJECT) {
 		indent++;
@@ -754,7 +769,7 @@ std::string get_string_from_value(Basic_Value value, int indent) {
 }
 
 std::string json_to_string(const Json& json) {
-	Basic_Value current_value = json.value;
+	Json_Value current_value = json.value;
 	std::string result = get_string_from_value(current_value, 0);
 	printf("%s\n", result.c_str());
 	return result;

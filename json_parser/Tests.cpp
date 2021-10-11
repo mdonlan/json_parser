@@ -366,7 +366,7 @@ TEST_CASE("Write/Edit Json") {
 		REQUIRE(json.value.type == Value_Type::OBJECT);
 		REQUIRE(json.value.to_obj()->properties.size() == 1);
 
-		Basic_Value value = json["foo"];
+		Json_Value value = json["foo"];
 
 		REQUIRE(value.type == Value_Type::NUMBER);
 		REQUIRE(value.to_int() == 3);
@@ -384,13 +384,42 @@ TEST_CASE("Write/Edit Json") {
 		REQUIRE(json.value.type == Value_Type::OBJECT);
 		REQUIRE(json.value.to_obj()->properties.size() == 1);
 
-		Basic_Value value = json["foo"];
+		Json_Value value = json["foo"];
 
 		REQUIRE(value.type == Value_Type::STRING);
 		REQUIRE(json["foo"].to_str().compare("hello world") == 0);
 	}
 	
+	SECTION("Write Nested Values") {
+		Json json = parse("{}");
+//		json["foo"] = ;
+	}
+	
 	SECTION("Write to file") {
 		
 	}
+}
+
+TEST_CASE("TYPES") {
+	Json json = parse(std::string(R"({ "test": 1})"));
+	REQUIRE(json["test"].to_int() == 1);
+	REQUIRE(json["test"].type == Value_Type::NUMBER);
+	
+	json = parse(std::string(R"({ "test": "str"})"));
+	REQUIRE(json["test"].to_str().compare("str") == 0);
+	REQUIRE(json["test"].type == Value_Type::STRING);
+	
+	
+}
+
+TEST_CASE("COMMENTS") {
+	Json json = parse(std::string(R"(
+	  {
+		// this is a comment
+		"test": 1
+	  }
+	  )"));
+	REQUIRE(json.value.type == Value_Type::OBJECT);
+	REQUIRE(json.value.to_obj()->properties.size() == 1);
+	REQUIRE(json["test"].to_int() == 1);
 }
