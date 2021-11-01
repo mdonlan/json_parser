@@ -329,20 +329,20 @@ TEST_CASE("Large Files") {
 		json_free(json.value);
 	}
 	
-	SECTION("Test memory free") {
-		Json json = parse(std::string{R"(
-			{
-				"test": "blah",
-				"foo": "bar",
-				{
-					"hello": 1,
-					"world": "yes"
-				}
-			}
-		)"});
-		
-		json_free(json.value);
-	}
+//	SECTION("Test memory free") {
+//		Json json = parse(std::string{R"(
+//			{
+//				"test": "blah",
+//				"foo": "bar",
+//				{
+//					"hello": 1,
+//					"world": "yes"
+//				}
+//			}
+//		)"});
+//
+//		json_free(json.value);
+//	}
 	
 	SECTION("Test Memory Leak") {
 //		for (int i = 0; i < 15; i++) {
@@ -395,9 +395,54 @@ TEST_CASE("Write/Edit Json") {
 //		json["foo"] = ;
 	}
 	
-	SECTION("Write to file") {
+}
+
+TEST_CASE("FILE I/O") {
+//	SECTION("Write out to file") {
+//		Json json = parse(std::string{R"(
+//			{
+//				"test": "blah",
+//				"foo": "bar",
+//				{
+//					"hello": 1,
+//					"world": "yes"
+//				},
+//				"test_arr": [ 1, 2, 3 ]
+//			}
+//		)"});
+//
+//
+//		REQUIRE(json.value.type == Value_Type::OBJECT);
+//		REQUIRE(json.value.to_obj()->properties.size() == 4);
+//
+//		json["foo"] = "hello world";
+//		REQUIRE(json["foo"].to_str().compare("hello world") == 0);
+//
+//		REQUIRE(json.value.type == Value_Type::OBJECT);
+//		REQUIRE(json.value.to_obj()->properties.size() == 1);
+//
+//		Json_Value value = json["foo"];
+//
+//		REQUIRE(value.type == Value_Type::STRING);
+//		REQUIRE(json["foo"].to_str().compare("hello world") == 0);
+//	}
+}
+
+TEST_CASE("JSON OBJECTS") {
+	
+	/*
+		there is currently an issue where an anonymous object is not seen as a syntax error
 		
-	}
+		it also causes parsing issues if there are other objects after it
+		the below example causes object foo to have another object foo inside of it??
+	*/
+	
+//	Json json = parse(std::string(R"({ "foo": { "test": 1}, { "blah": 2}, "hello": { "why": 3}} )"));
+	
+//	int a = 0;
+//	REQUIRE(json["test"].to_int() == 1);
+//	REQUIRE(json["test"].type == Value_Type::NUMBER);
+	
 }
 
 TEST_CASE("TYPES") {

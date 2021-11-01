@@ -635,9 +635,7 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 		}
 	}
 
-	
-	
-	
+
 	return false;
 }
 

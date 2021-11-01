@@ -46,11 +46,8 @@ struct Parser {
 
 enum class AST_Node_Type {
 	OBJECT,
-	ARRAY,
-//	STRING
+	ARRAY
 };
-
-struct AST_Pair_Node;
 
 enum class Value_Type {
 	NUMBER,
@@ -78,6 +75,8 @@ struct Json_Value {
 	Json_Obj* to_obj();
 	bool to_bool();
 };
+
+struct AST_Pair_Node;
 
 struct Json_Obj {
 	AST_Node_Type type;

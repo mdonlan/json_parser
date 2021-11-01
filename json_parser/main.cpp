@@ -18,6 +18,8 @@ int main(int argc, const char * argv[]) {
 	json["foo"] = 3;
 	json["bar"] = "hello world";
 	
+	Json other_json = json;
+	
 	// how to create a new object?
 //	json["blah"] = Basic_Value{.type = Value_Type::OBJECT};
 	
