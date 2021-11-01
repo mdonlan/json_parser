@@ -171,136 +171,130 @@ void eat_whitespace(Parser* parser) {
 	}
 }
 
-Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
+Json_Value set_root(Token token, Parser* parser) {
+	switch (token.type) {
+		case Token_Type::STRING_VALUE: {
+			Json_Value value;
+			value.type = Value_Type::STRING;
+			value.value = std::get<std::string>(token.value);
+			return value;
+		}
+		case Token_Type::NUMBER: {
+			Json_Value value;
+			value.type = Value_Type::NUMBER;
+			value.value = std::get<float>(token.value);
+			return value;
+		}
+		case Token_Type::BOOL: {
+			Json_Value value;
+			value.type = Value_Type::BOOL;
+			value.value = std::get<bool>(token.value);
+			return value;
+		}
+		case Token_Type::CLOSED_SQUARE_BRACKET:
+			assert(false);
+			break;
+		case Token_Type::OPEN_SQUARE_BRACKET: {
+			Json_Obj* new_array_node = new Json_Obj;
+			new_array_node->type = AST_Node_Type::ARRAY;
+			new_array_node->name = "ARRAY";
+//			new_array_node->parent = parser->current_obj;
+			
+			Json_Value value;
+			value.type = Value_Type::ARRAY;
+			value.value = new_array_node;
+			
+			parser->current_obj = new_array_node;
+			return value;
+		}
+		case Token_Type::OPEN_CURLY_BRACKET: {
+			Json_Obj* new_object_node = new Json_Obj;
+			new_object_node->type = AST_Node_Type::OBJECT;
+			new_object_node->name = "ROOT";
+			
+			parser->current_obj = new_object_node;
+			
+			Json_Value value;
+			value.type = Value_Type::OBJECT;
+			value.value = new_object_node;
+
+			return value;
+		}
+		case Token_Type::COLON: {
+			assert(false);
+			break;
+		}
+		case Token_Type::CLOSED_CURLY_BRACKET: {
+			assert(false);
+			break;
+		}
+		case Token_Type::NAME: {
+			assert(false);
+			break;
+		}
+		default:
+			assert(false);
+			break;
+	}
+}
+
+Json parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_error) {
 	Json json;
 	int token_index = 0;
 	Token current_token = tokens[token_index];
-	Json_Obj* current_node = nullptr;
+//	Json_Obj* current_node = parser->current_obj;
 	AST_Pair_Node* current_pair_node = nullptr;
 	std::string err_msg;
 	
 	while (current_token.type != Token_Type::END_OF_FILE) {
 		
-		if (is_valid_syntax(tokens, token_index, err_msg, print_error)) {
-			
-		} else {
+		if (!is_valid_syntax(tokens, token_index, err_msg, print_error)) {
 			json.value.type = Value_Type::ERROR;
 			json.value.value = err_msg;
 			return json;
 		}
 		
 		// handle setting the root value
-		if (current_node == nullptr) {
-			switch (current_token.type) {
-				case Token_Type::STRING_VALUE: {
-					Json_Value value;
-					value.type = Value_Type::STRING;
-					value.value = std::get<std::string>(current_token.value);
-			
-					json.value = value;
-					break;
-				}
-				case Token_Type::NUMBER: {
-					Json_Value value;
-					value.type = Value_Type::NUMBER;
-					value.value = std::get<float>(current_token.value);
-					
-					json.value = value;
-					break;
-				}
-				case Token_Type::BOOL: {
-					Json_Value value;
-					value.type = Value_Type::BOOL;
-					value.value = std::get<bool>(current_token.value);
-					
-					json.value = value;
-					
-					break;
-				}
-				case Token_Type::CLOSED_SQUARE_BRACKET:
-					assert(false);
-					break;
-				case Token_Type::OPEN_SQUARE_BRACKET: {
-					Json_Obj* new_array_node = new Json_Obj;
-					new_array_node->type = AST_Node_Type::ARRAY;
-					new_array_node->name = "ARRAY";
-					new_array_node->parent = current_node;
-					
-					Json_Value value;
-					value.type = Value_Type::ARRAY;
-					value.value = new_array_node;
-					
-					current_node = new_array_node;
-					json.value = value;
-					
-					break;
-				}
-				case Token_Type::OPEN_CURLY_BRACKET: {
-					Json_Obj* new_object_node = new Json_Obj;
-					new_object_node->type = AST_Node_Type::OBJECT;
-					new_object_node->name = "ROOT";
-					
-					Json_Value value;
-					value.type = Value_Type::OBJECT;
-					value.value = new_object_node;
-					json.value = value;
-
-					current_node = new_object_node;
-					break;
-				}
-				case Token_Type::COLON: {
-					assert(false);
-					break;
-				}
-				case Token_Type::CLOSED_CURLY_BRACKET: {
-					assert(false);
-					break;
-				}
-				case Token_Type::NAME: {
-					assert(false);
-					break;
-				}
-				default:
-					assert(false);
-					break;
-			}
+		if (parser->current_obj == nullptr) {
+			Json_Value root_value = set_root(current_token, parser);
+			json.value = root_value;
 		} // handle arrays
-		else if (current_node && current_node->type == AST_Node_Type::ARRAY) {
+		else if (parser->current_obj && parser->current_obj->type == AST_Node_Type::ARRAY) {
 			Json_Value value_node;
 			
 			switch (current_token.type) {
 				case Token_Type::STRING_VALUE:
 					value_node.type = Value_Type::STRING;
 					value_node.value = std::get<std::string>(current_token.value);
-					current_node->array.push_back(value_node);
+					parser->current_obj->array.push_back(value_node);
 					break;
 				case Token_Type::NUMBER:
 					value_node.type = Value_Type::NUMBER;
 					value_node.value = std::get<float>(current_token.value);
-					current_node->array.push_back(value_node);
+					parser->current_obj->array.push_back(value_node);
 					break;
 				case Token_Type::BOOL:
 					value_node.type = Value_Type::BOOL;
 					value_node.value = std::get<bool>(current_token.value);
-					current_node->array.push_back(value_node);
+					parser->current_obj->array.push_back(value_node);
 					break;
 				case Token_Type::CLOSED_SQUARE_BRACKET:
-					current_node = current_node->parent;
+					parser->current_obj = parser->current_obj->parent;
 					break;
 				case Token_Type::OPEN_SQUARE_BRACKET: {
 					Json_Obj* new_array_node = new Json_Obj;
 					new_array_node->type = AST_Node_Type::ARRAY;
 					new_array_node->name = "ARRAY";
-					new_array_node->parent = current_node;
+					new_array_node->parent = parser->current_obj;
 					
 					value_node.type = Value_Type::ARRAY;
 					value_node.value = new_array_node;
 					
 					// since we are in array section push as new item in array
-					assert(current_node->type == AST_Node_Type::ARRAY);
-					current_node->array.push_back(value_node);
+					assert(parser->current_obj->type == AST_Node_Type::ARRAY);
+					parser->current_obj->array.push_back(value_node);
 					
-					current_node = new_array_node;
+					parser->current_obj = new_array_node;
 					
 					break;
 				}
@@ -308,13 +302,13 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 					Json_Obj* new_object_node = new Json_Obj;
 					new_object_node->type = AST_Node_Type::OBJECT;
 					new_object_node->name = "UNNAMED";
-					new_object_node->parent = current_node;
+					new_object_node->parent = parser->current_obj;
 					
 					value_node.type = Value_Type::OBJECT;
 					value_node.value = new_object_node;
-					current_node->array.push_back(value_node);
+					parser->current_obj->array.push_back(value_node);
 					
-					current_node = new_object_node;
+					parser->current_obj = new_object_node;
 					break;
 				}
 				default:
@@ -326,40 +320,40 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 			if (current_token.type == Token_Type::OPEN_CURLY_BRACKET) { // object node
 				
 				// setup root node
-				if (!current_node) {
+				if (!parser->current_obj) {
 					Json_Obj* root_node = new Json_Obj;
 					root_node->type = AST_Node_Type::OBJECT;
 					root_node->name = "ROOT";
 					json.value.value = root_node;
-					current_node = root_node;
+					parser->current_obj = root_node;
 				} else {
-					assert(current_node);
-					AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
+					assert(parser->current_obj);
+					AST_Pair_Node* pair_node = parser->current_obj->properties[parser->current_obj->properties.size() - 1];
 					pair_node->value_node.type = Value_Type::OBJECT;
 					current_pair_node = pair_node;
 					
 					Json_Obj* new_object_node = new Json_Obj;
 					new_object_node->type = AST_Node_Type::OBJECT;
 					new_object_node->name = pair_node->key;
-					new_object_node->parent = current_node;
+					new_object_node->parent = parser->current_obj;
 					pair_node->value_node.value = new_object_node;
 					
-					current_node = new_object_node;
+					parser->current_obj = new_object_node;
 				}
 				
 				
 			} else if (current_token.type == Token_Type::NAME) { // name node
-				if (current_node->type != AST_Node_Type::OBJECT) assert(false);
+				if (parser->current_obj->type != AST_Node_Type::OBJECT) assert(false);
 				
 				AST_Pair_Node* pair_node = new AST_Pair_Node;
 				pair_node->key = std::get<std::string>(current_token.value);
-				pair_node->parent = current_node;
-				current_node->properties.push_back(pair_node);
+				pair_node->parent = parser->current_obj;
+				parser->current_obj->properties.push_back(pair_node);
 				current_pair_node = pair_node;
 			} else if (current_token.type == Token_Type::STRING_VALUE) {
-				if (current_node->type != AST_Node_Type::OBJECT) assert(false);
+				if (parser->current_obj->type != AST_Node_Type::OBJECT) assert(false);
 				
-				AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
+				AST_Pair_Node* pair_node = parser->current_obj->properties[parser->current_obj->properties.size() - 1];
 				
 				Json_Value value_node;
 				value_node.type = Value_Type::STRING;
@@ -367,9 +361,9 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 				
 				pair_node->value_node = value_node;
 			} else if (current_token.type == Token_Type::NUMBER) {
-				if (current_node->type != AST_Node_Type::OBJECT) assert(false);
+				if (parser->current_obj->type != AST_Node_Type::OBJECT) assert(false);
 				
-				AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
+				AST_Pair_Node* pair_node = parser->current_obj->properties[parser->current_obj->properties.size() - 1];
 				
 				Json_Value value_node;
 				value_node.type = Value_Type::NUMBER;
@@ -377,9 +371,9 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 				
 				pair_node->value_node = value_node;
 			} else if (current_token.type == Token_Type::BOOL) {
-				if (current_node->type != AST_Node_Type::OBJECT) assert(false);
+				if (parser->current_obj->type != AST_Node_Type::OBJECT) assert(false);
 				
-				AST_Pair_Node* pair_node = current_node->properties[current_node->properties.size() - 1];
+				AST_Pair_Node* pair_node = parser->current_obj->properties[parser->current_obj->properties.size() - 1];
 				
 				Json_Value value_node;
 				value_node.type = Value_Type::BOOL;
@@ -391,20 +385,20 @@ Json parse_tokens(std::vector<Token>& tokens, bool print_error) {
 				Json_Obj* new_array_node = new Json_Obj;
 				new_array_node->type = AST_Node_Type::ARRAY;
 				new_array_node->name = "ARRAY";
-				new_array_node->parent = current_node;
+				new_array_node->parent = parser->current_obj;
 				
 				current_pair_node->value_node.type = Value_Type::ARRAY;
 				current_pair_node->value_node.value = new_array_node;
 				
-				current_node = new_array_node;
+				parser->current_obj = new_array_node;
 			} else if (current_token.type == Token_Type::CLOSED_SQUARE_BRACKET) {
 				assert(false); // we shouldn't hit here becuase we should deal w/ this in the in_array section
 			} else if (current_token.type == Token_Type::CLOSED_CURLY_BRACKET) {
 				// end of object, set the parent as the current node
-				if (current_node->parent) {
-					current_node = current_node->parent;
+				if (parser->current_obj->parent) {
+					parser->current_obj = parser->current_obj->parent;
 				} else {
-					if (current_node->name.compare("ROOT") != 0) {
+					if (parser->current_obj->name.compare("ROOT") != 0) {
 						// every time we close an object it should have a parent that we revert to unless its the ROOT
 						assert(false);
 					}
@@ -436,7 +430,7 @@ Json parse(std::string str, bool print_error) {
 	parser->str = str;
 	lex(parser);
 	Json json_data;
-	json_data = parse_tokens(parser->tokens, print_error);
+	json_data = parse_tokens(parser->tokens, parser, print_error);
 	
 	delete parser;
 	return json_data;

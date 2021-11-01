@@ -36,12 +36,15 @@ struct Token {
 	std::variant<std::string, float, bool, char> value;
 };
 
+struct Json_Obj;
+
 struct Parser {
 	unsigned int index = 0;
 	bool eof = false;
 	std::string str;
 	std::vector<Token> tokens;
 	std::string cache; // chars left that were not matching anything
+	Json_Obj* current_obj = nullptr; 
 };
 
 enum class AST_Node_Type {
@@ -102,7 +105,7 @@ Json parse(std::string str, bool print_error = true); // print_error -- can turn
 void consume(Parser* parser);
 char peek(Parser* parser, unsigned int index);
 void eat_whitespace(Parser* parser);
-Json parse_tokens(std::vector<Token>& tokens, bool print_error);
+Json parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_error);
 const std::string load_json_from_file(const std::string& file_name);
 bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& err_msg, bool print_error);
 void json_err(const std::string& err_msg, bool print_error);
@@ -110,5 +113,8 @@ void json_free(Json_Value& value);
 void print_value(Json_Value value);
 void write_json(std::string json_str, std::string filename);
 std::string json_to_string(const Json& json);
+
+// new parsing stuff...
+Json_Value set_root(Token token, Parser* parser);
 
 #endif /* json_h */
