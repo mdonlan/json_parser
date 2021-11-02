@@ -116,5 +116,6 @@ std::string json_to_string(const Json& json);
 
 // new parsing stuff...
 Json_Value set_root(Token token, Parser* parser);
+void parse_array(Token token, Parser* parser);
 
 #endif /* json_h */
