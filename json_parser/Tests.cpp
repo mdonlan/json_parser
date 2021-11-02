@@ -92,6 +92,17 @@ TEST_CASE("ARRAY TESTS") {
 		
 		json_free(json.value);
 	}
+	
+	SECTION("Array of numbers") {
+		Json json = parse(std::string{R"(
+			[ 1, 2, 3]
+		)"});
+		
+		Json_Array array = json.value.to_array();
+		
+		REQUIRE(array.size() == 3);
+		REQUIRE(array[0].type == Value_Type::NUMBER);
+	}
 }
 
 TEST_CASE("OBJECT IN ARRAY") {
@@ -398,34 +409,21 @@ TEST_CASE("Write/Edit Json") {
 }
 
 TEST_CASE("FILE I/O") {
-//	SECTION("Write out to file") {
-//		Json json = parse(std::string{R"(
-//			{
-//				"test": "blah",
-//				"foo": "bar",
-//				{
-//					"hello": 1,
-//					"world": "yes"
-//				},
-//				"test_arr": [ 1, 2, 3 ]
-//			}
-//		)"});
-//
-//
-//		REQUIRE(json.value.type == Value_Type::OBJECT);
-//		REQUIRE(json.value.to_obj()->properties.size() == 4);
-//
-//		json["foo"] = "hello world";
-//		REQUIRE(json["foo"].to_str().compare("hello world") == 0);
-//
-//		REQUIRE(json.value.type == Value_Type::OBJECT);
-//		REQUIRE(json.value.to_obj()->properties.size() == 1);
-//
-//		Json_Value value = json["foo"];
-//
-//		REQUIRE(value.type == Value_Type::STRING);
-//		REQUIRE(json["foo"].to_str().compare("hello world") == 0);
-//	}
+	SECTION("Write out to file") {
+		Json json = parse(std::string{R"(
+			{
+				"test": "blah",
+				"foo": {
+					"hello": 1,
+					"world": "yes"
+				},
+				"test_arr": [ 1, 2, 3 ]
+			}
+		)"});
+
+
+		write_json(json_to_string(json), "write_json_test.json");
+	}
 }
 
 TEST_CASE("JSON OBJECTS") {

@@ -1,9 +1,8 @@
 {
-	"foo": "hello world!",
-	"blah": "it is wednesday",
-	"yeah": {
-		"test": "blah",
-		"what": 4,
-		"why": 5.700000
-	}
+	"test": "blah",
+	"foo": {
+		"hello": 1,
+		"world": "yes"
+	},
+	"test_arr":  [ 1, 2, 3 ] 
 }

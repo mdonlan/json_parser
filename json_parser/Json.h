@@ -89,6 +89,8 @@ struct Json_Obj {
 	Json_Obj* parent;
 };
 
+typedef std::vector<Json_Value> Json_Array;
+
 struct AST_Pair_Node {
 	std::string key;
 	Json_Value value_node;

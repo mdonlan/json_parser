@@ -582,7 +582,8 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 				prev_token.type == Token_Type::CLOSED_SQUARE_BRACKET ||
 				prev_token.type == Token_Type::CLOSED_CURLY_BRACKET ||
 				prev_token.type == Token_Type::COMMA ||
-				prev_token.type == Token_Type::BOOL) {
+				prev_token.type == Token_Type::BOOL ||
+				prev_token.type == Token_Type::NUMBER) {
 				return true;
 			} else {
 				err_msg = "Invalid token ']'.";
@@ -615,7 +616,9 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 				json_err(err_msg, print_error);
 			}
 		} else if (current_token.type == Token_Type::NUMBER) {
-			if (prev_token.type == Token_Type::COLON) {
+			if (prev_token.type == Token_Type::COLON ||
+				prev_token.type == Token_Type::COMMA ||
+				prev_token.type == Token_Type::OPEN_SQUARE_BRACKET) {
 				return true;
 			} else {
 				err_msg = "Invalid token before Number";
@@ -752,6 +755,18 @@ std::string get_string_from_value(Json_Value value, int indent) {
 		} else {
 			str += std::to_string(value.to_float());
 		}
+	} else if (value.type == Value_Type::ARRAY) {
+		str += " [ ";
+		Json_Array array = value.to_array();
+		for (int i = 0; i < array.size(); i++) {
+			str += get_string_from_value(array[i], indent);
+			if (i < array.size() - 1) {
+				str += ", ";
+			}
+		}
+		str += " ] ";
+	} else {
+		assert(false);
 	}
 	
 	return str;
