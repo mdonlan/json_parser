@@ -4,5 +4,6 @@
 		"hello": 1,
 		"world": "yes"
 	},
-	"test_arr":  [ 1, 2, 3 ] 
+	"test_arr": [ 1, 2, 3 ],
+	"test_bool": false
 }

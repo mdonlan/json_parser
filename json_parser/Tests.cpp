@@ -366,10 +366,10 @@ TEST_CASE("Large Files") {
 
 TEST_CASE("Write/Edit Json") {
 	SECTION("Write Numbers") {
-		Json json = parse("{}");
+		Json json; // setup json without parse();
 
-		REQUIRE(json.value.type == Value_Type::OBJECT);
-		REQUIRE(json.value.to_obj()->properties.size() == 0);
+//		REQUIRE(json.value.type == Value_Type::OBJECT);
+//		REQUIRE(json.value.to_obj()->properties.size() == 0);
 
 		json["foo"] = 3;
 		REQUIRE(json["foo"].to_int() == 3);
@@ -408,23 +408,24 @@ TEST_CASE("Write/Edit Json") {
 	
 }
 
-TEST_CASE("FILE I/O") {
-	SECTION("Write out to file") {
-		Json json = parse(std::string{R"(
-			{
-				"test": "blah",
-				"foo": {
-					"hello": 1,
-					"world": "yes"
-				},
-				"test_arr": [ 1, 2, 3 ]
-			}
-		)"});
-
-
-		write_json(json_to_string(json), "write_json_test.json");
-	}
-}
+//TEST_CASE("FILE I/O") {
+//	SECTION("Write out to file") {
+//		Json json = parse(std::string{R"(
+//			{
+//				"test": "blah",
+//				"foo": {
+//					"hello": 1,
+//					"world": "yes"
+//				},
+//				"test_arr": [ 1, 2, 3 ],
+//				"test_bool": false
+//			}
+//		)"});
+//
+//
+//		write_json(json_to_string(json), "write_json_test.json");
+//	}
+//}
 
 TEST_CASE("JSON OBJECTS") {
 	

@@ -318,6 +318,7 @@ Json parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_error) 
 				
 				// setup root node
 				if (!parser->current_obj) {
+					assert(false); // this should be handled in root section
 					Json_Obj* root_node = new Json_Obj;
 					root_node->type = AST_Node_Type::OBJECT;
 					root_node->name = "ROOT";
@@ -451,6 +452,18 @@ const std::string load_json_from_file(const std::string& file_name) {
 // check for keys that match the string and return their value node
 // if there is no matching key then return an empty value
 Json_Value& Json::operator[](std::string key) {
+	
+	// if we are trying to set a value in a Json object that was just created
+	// it will be of type NULL_TYPE, we need to convert it to an OBJECT type
+	if (this->value.type == Value_Type::NULL_TYPE) {
+		Json_Obj* new_object_node = new Json_Obj;
+		new_object_node->type = AST_Node_Type::OBJECT;
+		new_object_node->name = "ROOT";
+
+		this->value.type = Value_Type::OBJECT;
+		this->value.value = new_object_node;
+	}
+	
 	Json_Obj* current_node = nullptr;
 	if (this->value.type == Value_Type::OBJECT) {
 		current_node = this->value.to_obj();
@@ -756,7 +769,7 @@ std::string get_string_from_value(Json_Value value, int indent) {
 			str += std::to_string(value.to_float());
 		}
 	} else if (value.type == Value_Type::ARRAY) {
-		str += " [ ";
+		str += "[ ";
 		Json_Array array = value.to_array();
 		for (int i = 0; i < array.size(); i++) {
 			str += get_string_from_value(array[i], indent);
@@ -764,7 +777,13 @@ std::string get_string_from_value(Json_Value value, int indent) {
 				str += ", ";
 			}
 		}
-		str += " ] ";
+		str += " ]";
+	} else if (value.type == Value_Type::BOOL) {
+		if (value.to_bool() == false) {
+			str += "false";
+		} else {
+			str += "true";
+		}
 	} else {
 		assert(false);
 	}
