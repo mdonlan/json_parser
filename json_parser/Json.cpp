@@ -282,8 +282,8 @@ void parse_array(Token token, Parser* parser) {
 	}
 }
 
-Json parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_error) {
-	Json json;
+Json_Value parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_error) {
+	Json_Value json;
 	int token_index = 0;
 	Token current_token = tokens[token_index];
 //	Json_Obj* current_node = parser->current_obj;
@@ -293,8 +293,8 @@ Json parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_error) 
 	while (current_token.type != Token_Type::END_OF_FILE) {
 		
 		if (!is_valid_syntax(tokens, token_index, err_msg, print_error)) {
-			json.value.type = Value_Type::ERROR;
-			json.value.value = err_msg;
+			json.type = Value_Type::ERROR;
+			json.value = err_msg;
 			return json;
 		}
 		
@@ -304,7 +304,7 @@ Json parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_error) 
 			if (root_value.type == Value_Type::ERROR) {
 				return json;
 			} else {
-				json.value = root_value;
+				json = root_value;
 			}
 			
 		} // handle arrays
@@ -322,7 +322,7 @@ Json parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_error) 
 					Json_Obj* root_node = new Json_Obj;
 					root_node->type = AST_Node_Type::OBJECT;
 					root_node->name = "ROOT";
-					json.value.value = root_node;
+					json.value = root_node;
 					parser->current_obj = root_node;
 				} else {
 					assert(parser->current_obj);
@@ -423,11 +423,11 @@ void lex(Parser* parser) {
 	}
 }
 
-Json parse(std::string str, bool print_error) {
+Json_Value parse(std::string str, bool print_error) {
 	Parser* parser = new Parser;
 	parser->str = str;
 	lex(parser);
-	Json json_data;
+	Json_Value json_data;
 	json_data = parse_tokens(parser->tokens, parser, print_error);
 	
 	delete parser;
@@ -451,22 +451,24 @@ const std::string load_json_from_file(const std::string& file_name) {
 // use this overload to access data withing a Json_Data object
 // check for keys that match the string and return their value node
 // if there is no matching key then return an empty value
-Json_Value& Json::operator[](std::string key) {
-	
+Json_Value& Json_Value::operator[](std::string key) {
+
 	// if we are trying to set a value in a Json object that was just created
 	// it will be of type NULL_TYPE, we need to convert it to an OBJECT type
-	if (this->value.type == Value_Type::NULL_TYPE) {
+	if (this->type == Value_Type::NULL_TYPE) {
 		Json_Obj* new_object_node = new Json_Obj;
 		new_object_node->type = AST_Node_Type::OBJECT;
 		new_object_node->name = "ROOT";
 
-		this->value.type = Value_Type::OBJECT;
-		this->value.value = new_object_node;
+		this->type = Value_Type::OBJECT;
+		this->value = new_object_node;
 	}
-	
+
 	Json_Obj* current_node = nullptr;
-	if (this->value.type == Value_Type::OBJECT) {
-		current_node = this->value.to_obj();
+	if (this->type == Value_Type::OBJECT) {
+		current_node = this->to_obj();
+	} else {
+		assert(false);
 	}
 
 	for (AST_Pair_Node* pair_node : current_node->properties) {
@@ -474,41 +476,41 @@ Json_Value& Json::operator[](std::string key) {
 			return pair_node->value_node;
 		}
 	}
-	
+
 	// if we don't find a matching property name then create a empty property with the key
 	AST_Pair_Node* pair_node = new AST_Pair_Node;
 	pair_node->key = key;
 	pair_node->parent = current_node;
 	current_node->properties.push_back(pair_node);
-	
+
 	Json_Value value_node;
 	value_node.type = Value_Type::EMPTY;
 	value_node.value = 0;
-	
+
 	pair_node->value_node = value_node;
-	
+
 	return pair_node->value_node;
 }
 
-// use this overload to access data withing a AST_Value_Node object
-// check for keys that match the string and return their value node
-Json_Value Json_Value::operator[](std::string key) {
-	Json_Value value_node;
-	
-	if (this->type == Value_Type::ARRAY) {
-		
-	} else if (this->type == Value_Type::OBJECT) {
-		auto node = std::get<Json_Obj*>(this->value);
-		for (AST_Pair_Node* pair_node : node->properties) {
-			if (pair_node->key.compare(key) == 0) {
-				return pair_node->value_node;
-			}
-		}
-	}
-	
-	assert(false);
-	return value_node;
-}
+//// use this overload to access data withing a AST_Value_Node object
+//// check for keys that match the string and return their value node
+//Json_Value Json_Value::operator[](std::string key) {
+//	Json_Value value_node;
+//
+//	if (this->type == Value_Type::ARRAY) {
+//
+//	} else if (this->type == Value_Type::OBJECT) {
+//		auto node = std::get<Json_Obj*>(this->value);
+//		for (AST_Pair_Node* pair_node : node->properties) {
+//			if (pair_node->key.compare(key) == 0) {
+//				return pair_node->value_node;
+//			}
+//		}
+//	}
+//
+//	assert(false);
+//	return value_node;
+//}
 
 float get_number(Json_Value value_node) {
 	return std::get<float>(value_node.value);
@@ -698,18 +700,18 @@ void json_free(Json_Value& value) {
 
 void Json_Value::operator=(int num) {
 	std::string str = std::to_string(num);
-	Json json = parse(str);
+	Json_Value json = parse(str);
 	
 	this->type = Value_Type::NUMBER;
-	this->value = json.value.value;
+	this->value = json.value;
 }
 
 void Json_Value::operator=(std::string str) {
 	std::string wrapped_str = '\"' + str + '\"'; // we need to wrap the string in quotes for the parser to view it as a string
-	Json json = parse(wrapped_str);
+	Json_Value json = parse(wrapped_str);
 	
 	this->type = Value_Type::STRING;
-	this->value = json.value.value;
+	this->value = json.value;
 }
 
 void print_value(Json_Value value) {
@@ -791,8 +793,8 @@ std::string get_string_from_value(Json_Value value, int indent) {
 	return str;
 }
 
-std::string json_to_string(const Json& json) {
-	Json_Value current_value = json.value;
+std::string json_to_string(const Json_Value& json) {
+	Json_Value current_value = json;
 	std::string result = get_string_from_value(current_value, 0);
 	printf("%s\n", result.c_str());
 	return result;

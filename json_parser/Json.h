@@ -66,9 +66,10 @@ enum class Value_Type {
 struct Json_Obj;
 
 struct Json_Value {
-	Value_Type type;
-	std::variant<std::string, int, float, bool, Json_Obj*, std::vector<Json_Value>> value;
-	Json_Value operator[](std::string key);
+	Value_Type type = Value_Type::NULL_TYPE;
+	std::variant<std::string, int, float, bool, Json_Obj*, std::vector<Json_Value>> value = 0;
+//	Json_Value operator[](std::string key);
+	Json_Value& operator[](std::string key);
 	void operator=(std::string str);
 	void operator=(int num);
 	const std::string to_str();
@@ -97,24 +98,24 @@ struct AST_Pair_Node {
 	Json_Obj* parent;
 };
 
-struct Json {
-	Json_Value value = { .type = Value_Type::NULL_TYPE, .value = 0 };
-	Json_Value& operator[](std::string key);
-};
+//struct Json {
+//	Json_Value value = { .type = Value_Type::NULL_TYPE, .value = 0 };
+//	Json_Value& operator[](std::string key);
+//};
 
 void lex(Parser* parser);
-Json parse(std::string str, bool print_error = true); // print_error -- can turn off for dev/testing purposes w/ expected errors
+Json_Value parse(std::string str, bool print_error = true); // print_error -- can turn off for dev/testing purposes w/ expected errors
 void consume(Parser* parser);
 char peek(Parser* parser, unsigned int index);
 void eat_whitespace(Parser* parser);
-Json parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_error);
+Json_Value parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_error);
 const std::string load_json_from_file(const std::string& file_name);
 bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& err_msg, bool print_error);
 void json_err(const std::string& err_msg, bool print_error);
 void json_free(Json_Value& value);
 void print_value(Json_Value value);
 void write_json(std::string json_str, std::string filename);
-std::string json_to_string(const Json& json);
+std::string json_to_string(const Json_Value& json);
 
 // new parsing stuff...
 Json_Value set_root(Token token, Parser* parser);

@@ -12,8 +12,8 @@
 
 
 TEST_CASE( "\nBasic Test\n", "[basic]" ) {
-	Json json = parse(load_json_from_file("json_test.json"));
-	Json_Obj* root_node = json.value.to_obj();
+	Json_Value json = parse(load_json_from_file("json_test.json"));
+	Json_Obj* root_node = json.to_obj();
 
 	REQUIRE(root_node != nullptr);
 	REQUIRE(root_node->name.compare("ROOT") == 0);
@@ -33,19 +33,19 @@ TEST_CASE( "\nBasic Test\n", "[basic]" ) {
 	REQUIRE(pair_node->value_node.type == Value_Type::STRING);
 	REQUIRE(std::get<std::string>(pair_node->value_node.value).compare("delectus aut autem") == 0);
 	
-	json_free(json.value);
+	json_free(json);
 }
 
 TEST_CASE("ARRAY TESTS") {
 	SECTION("Nested Array") {
-		Json json = parse(std::string{R"(
+		Json_Value json = parse(std::string{R"(
 			{
 				"nested_array": [[]]
 			}
 		)"});
 		
 	//	AST_Node* root_node = json_data.ast->root;
-		Json_Obj* root_node = json.value.to_obj();
+		Json_Obj* root_node = json.to_obj();
 		
 		REQUIRE(root_node != nullptr);
 		REQUIRE(root_node->name.compare("ROOT") == 0);
@@ -56,24 +56,24 @@ TEST_CASE("ARRAY TESTS") {
 		REQUIRE(pair_node->value_node.type == Value_Type::ARRAY);
 		REQUIRE(std::get<Json_Obj*>(pair_node->value_node.value)->array.size() == 1);
 		
-		json_free(json.value);
+		json_free(json);
 	}
 	
 	SECTION("Naked Array") {
-		Json json = parse(std::string{R"(
+		Json_Value json = parse(std::string{R"(
 			[]
 		)"});
 		
-		Json_Obj* array_node = json.value.to_obj();
+		Json_Obj* array_node = json.to_obj();
 
 		REQUIRE(array_node != nullptr);
 		REQUIRE(array_node->properties.size() == 0);
 		
-		json_free(json.value);
+		json_free(json);
 	}
 	
 	SECTION("Naked Array w/ data") {
-		Json json = parse(std::string{R"(
+		Json_Value json = parse(std::string{R"(
 			[
 				{
 					"a": "test"
@@ -84,21 +84,21 @@ TEST_CASE("ARRAY TESTS") {
 			]
 		)"});
 		
-		Json_Obj* array_node = json.value.to_obj();
+		Json_Obj* array_node = json.to_obj();
 
 		REQUIRE(array_node != nullptr);
 		REQUIRE(array_node->properties.size() == 0);
 		REQUIRE(array_node->array.size() == 2);
 		
-		json_free(json.value);
+		json_free(json);
 	}
 	
 	SECTION("Array of numbers") {
-		Json json = parse(std::string{R"(
+		Json_Value json = parse(std::string{R"(
 			[ 1, 2, 3]
 		)"});
 		
-		Json_Array array = json.value.to_array();
+		Json_Array array = json.to_array();
 		
 		REQUIRE(array.size() == 3);
 		REQUIRE(array[0].type == Value_Type::NUMBER);
@@ -106,7 +106,7 @@ TEST_CASE("ARRAY TESTS") {
 }
 
 TEST_CASE("OBJECT IN ARRAY") {
-	Json json = parse(std::string{R"(
+	Json_Value json = parse(std::string{R"(
 		{
 			"object_in_arr": [
 				{
@@ -117,7 +117,7 @@ TEST_CASE("OBJECT IN ARRAY") {
 	)"});
 
 //	AST_Node* root_node = json_data.ast->root;
-	Json_Obj* root_node = json.value.to_obj();
+	Json_Obj* root_node = json.to_obj();
 
 	REQUIRE(root_node != nullptr);
 	REQUIRE(root_node->name.compare("ROOT") == 0);
@@ -136,11 +136,11 @@ TEST_CASE("OBJECT IN ARRAY") {
 	REQUIRE(object->properties[0]->value_node.type == Value_Type::STRING);
 	REQUIRE(std::get<std::string>(object->properties[0]->value_node.value).compare("object_1") == 0);
 	
-	json_free(json.value);
+	json_free(json);
 }
 
 TEST_CASE("COMPLEX") {
-	Json json = parse(std::string{R"(
+	Json_Value json = parse(std::string{R"(
 		{
 			"name": "json_test_ship",
 			"tiles": [
@@ -177,51 +177,51 @@ TEST_CASE("COMPLEX") {
 		}
 	)"});
 
-	Json_Obj* root_node = json.value.to_obj();
+	Json_Obj* root_node = json.to_obj();
 
 	REQUIRE(root_node != nullptr);
 	REQUIRE(root_node->name.compare("ROOT") == 0);
 	REQUIRE(root_node->properties.size() == 3);
 //	REQUIRE(json_data["name"].value.as_string())
 	
-	json_free(json.value);
+	json_free(json);
 }
 
 TEST_CASE("STRING") {
 	SECTION("lonely_string") {
-		Json json = parse(std::string{R"("abc")"});
+		Json_Value json = parse(std::string{R"("abc")"});
 		
-		REQUIRE(json.value.type == Value_Type::STRING);
+		REQUIRE(json.type == Value_Type::STRING);
 //		REQUIRE(get_string(json.value).compare("abc") == 0);
-		REQUIRE(json.value.to_str().compare("abc") == 0);
-		json_free(json.value);
+		REQUIRE(json.to_str().compare("abc") == 0);
+		json_free(json);
 	}
 }
 
 TEST_CASE("Expected Errors") {
 	SECTION("Invalid Starting Token") {
-		Json json = parse(":", false);
-		REQUIRE(json.value.type == Value_Type::ERROR);
+		Json_Value json = parse(":", false);
+		REQUIRE(json.type == Value_Type::ERROR);
 		
-		json_free(json.value);
+		json_free(json);
 	}
 	
 	SECTION("Unterminated String") {
-		Json json = parse(R"("hello)", false);
-		REQUIRE(json.value.type == Value_Type::ERROR);
+		Json_Value json = parse(R"("hello)", false);
+		REQUIRE(json.type == Value_Type::ERROR);
 		
-		json_free(json.value);
+		json_free(json);
 	}
 	
 	SECTION("Unterminated String Part 2") {
-		Json json = parse(R"(
+		Json_Value json = parse(R"(
 			{
 				"a": "test
 			}
 		)", false);
 //		REQUIRE(json.value.type == Value_Type::ERROR);
 		
-		json_free(json.value);
+		json_free(json);
 	}
 }
 
@@ -229,7 +229,7 @@ TEST_CASE("Expected Errors") {
 TEST_CASE("SERIALIZE") {
 	// test serialize of the ship object
 	
-	Json json = parse(load_json_from_file("ship_test.json"));
+	Json_Value json = parse(load_json_from_file("ship_test.json"));
 	
 	struct Tile {
 		int x;
@@ -285,18 +285,18 @@ TEST_CASE("SERIALIZE") {
 	REQUIRE(ship.rooms.size() == 1);
 	REQUIRE(ship.rooms[0].id == 0);
 	
-	json_free(json.value);
+	json_free(json);
 }
 
 TEST_CASE("NUMBERS") {
 	SECTION("Naked number") {
-		Json json = parse(std::string(R"(3)"));
-		REQUIRE(json.value.type == Value_Type::NUMBER);
-		REQUIRE(json.value.to_int() == 3);
+		Json_Value json = parse(std::string(R"(3)"));
+		REQUIRE(json.type == Value_Type::NUMBER);
+		REQUIRE(json.to_int() == 3);
 	}
 	
 	SECTION("INT vs float") {
-		Json json = parse(std::string(R"({"test_float": 7.25, "test_int": 2})"));
+		Json_Value json = parse(std::string(R"({"test_float": 7.25, "test_int": 2})"));
 		REQUIRE(json["test_float"].type == Value_Type::NUMBER);
 		REQUIRE(json["test_float"].to_float() == 7.25);
 		REQUIRE(json["test_int"].type == Value_Type::NUMBER);
@@ -306,18 +306,18 @@ TEST_CASE("NUMBERS") {
 
 TEST_CASE("BOOLS") {
 	SECTION("Naked bool") {
-		Json json = parse(std::string{R"(
+		Json_Value json = parse(std::string{R"(
 			true
 		)"});
 		
-		REQUIRE(json.value.type == Value_Type::BOOL);
-		REQUIRE(json.value.to_bool() == true);
+		REQUIRE(json.type == Value_Type::BOOL);
+		REQUIRE(json.to_bool() == true);
 		
-		json_free(json.value);
+		json_free(json);
 	}
 	
 	SECTION("array of bools") {
-		Json json = parse(std::string{R"(
+		Json_Value json = parse(std::string{R"(
 			[
 				false,
 				true,
@@ -325,19 +325,19 @@ TEST_CASE("BOOLS") {
 			]
 		)"});
 		
-		REQUIRE(json.value.type == Value_Type::ARRAY);
-		auto arr = json.value.to_array();
+		REQUIRE(json.type == Value_Type::ARRAY);
+		auto arr = json.to_array();
 		REQUIRE(arr.size() == 3);
 		REQUIRE(arr[0].to_bool() == false);
 		
-		json_free(json.value);
+		json_free(json);
 	}
 }
 
 TEST_CASE("Large Files") {
 	SECTION("Parse Large File") {
-		Json json = parse(load_json_from_file("large_test_file_2.json"));
-		json_free(json.value);
+		Json_Value json = parse(load_json_from_file("large_test_file_2.json"));
+		json_free(json);
 	}
 	
 //	SECTION("Test memory free") {
@@ -366,7 +366,7 @@ TEST_CASE("Large Files") {
 
 TEST_CASE("Write/Edit Json") {
 	SECTION("Write Numbers") {
-		Json json; // setup json without parse();
+		Json_Value json; // setup json without parse();
 
 //		REQUIRE(json.value.type == Value_Type::OBJECT);
 //		REQUIRE(json.value.to_obj()->properties.size() == 0);
@@ -374,8 +374,8 @@ TEST_CASE("Write/Edit Json") {
 		json["foo"] = 3;
 		REQUIRE(json["foo"].to_int() == 3);
 
-		REQUIRE(json.value.type == Value_Type::OBJECT);
-		REQUIRE(json.value.to_obj()->properties.size() == 1);
+		REQUIRE(json.type == Value_Type::OBJECT);
+		REQUIRE(json.to_obj()->properties.size() == 1);
 
 		Json_Value value = json["foo"];
 
@@ -384,16 +384,16 @@ TEST_CASE("Write/Edit Json") {
 	}
 	
 	SECTION("Write Strings") {
-		Json json = parse("{}");
+		Json_Value json = parse("{}");
 
-		REQUIRE(json.value.type == Value_Type::OBJECT);
-		REQUIRE(json.value.to_obj()->properties.size() == 0);
+		REQUIRE(json.type == Value_Type::OBJECT);
+		REQUIRE(json.to_obj()->properties.size() == 0);
 
 		json["foo"] = "hello world";
 		REQUIRE(json["foo"].to_str().compare("hello world") == 0);
 
-		REQUIRE(json.value.type == Value_Type::OBJECT);
-		REQUIRE(json.value.to_obj()->properties.size() == 1);
+		REQUIRE(json.type == Value_Type::OBJECT);
+		REQUIRE(json.to_obj()->properties.size() == 1);
 
 		Json_Value value = json["foo"];
 
@@ -402,7 +402,7 @@ TEST_CASE("Write/Edit Json") {
 	}
 	
 	SECTION("Write Nested Values") {
-		Json json = parse("{}");
+		Json_Value json = parse("{}");
 //		json["foo"] = ;
 	}
 	
@@ -445,7 +445,7 @@ TEST_CASE("JSON OBJECTS") {
 }
 
 TEST_CASE("TYPES") {
-	Json json = parse(std::string(R"({ "test": 1})"));
+	Json_Value json = parse(std::string(R"({ "test": 1})"));
 	REQUIRE(json["test"].to_int() == 1);
 	REQUIRE(json["test"].type == Value_Type::NUMBER);
 	
@@ -457,13 +457,13 @@ TEST_CASE("TYPES") {
 }
 
 TEST_CASE("COMMENTS") {
-	Json json = parse(std::string(R"(
+	Json_Value json = parse(std::string(R"(
 	  {
 		// this is a comment
 		"test": 1
 	  }
 	  )"));
-	REQUIRE(json.value.type == Value_Type::OBJECT);
-	REQUIRE(json.value.to_obj()->properties.size() == 1);
+	REQUIRE(json.type == Value_Type::OBJECT);
+	REQUIRE(json.to_obj()->properties.size() == 1);
 	REQUIRE(json["test"].to_int() == 1);
 }

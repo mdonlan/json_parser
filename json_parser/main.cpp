@@ -14,11 +14,11 @@
 
 int main(int argc, const char * argv[]) {
 	
-	Json json = parse("{}");
+	Json_Value json = parse("{}");
 	json["foo"] = 3;
 	json["bar"] = "hello world";
 	
-	Json other_json = json;
+	Json_Value other_json = json;
 	
 	// how to create a new object?
 //	json["blah"] = Basic_Value{.type = Value_Type::OBJECT};
