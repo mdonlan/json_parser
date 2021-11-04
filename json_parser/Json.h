@@ -23,10 +23,8 @@ enum class Token_Type {
 	COLON,
 	OPEN_SQUARE_BRACKET,
 	CLOSED_SQUARE_BRACKET,
-//	NULL_TYPE,
 	COMMA,
 	END_OF_FILE,
-//	ERROR,
 	UNTERMINATED_STRING,
 	COMMENT
 };
@@ -37,6 +35,8 @@ struct Token {
 };
 
 struct Json_Obj;
+struct Json_Value;
+typedef std::vector<Json_Value> Json_Array;
 
 struct Parser {
 	unsigned int index = 0;
@@ -44,7 +44,10 @@ struct Parser {
 	std::string str;
 	std::vector<Token> tokens;
 	std::string cache; // chars left that were not matching anything
-	Json_Obj* current_obj = nullptr; 
+	Json_Obj* current_obj = nullptr;
+	Json_Array* current_arr = nullptr;
+//	bool current_is_obj = false;
+//	bool current_is_arr = false;
 };
 
 enum class AST_Node_Type {
@@ -63,12 +66,14 @@ enum class Value_Type {
 	EMPTY
 };
 
-struct Json_Obj;
+//struct Json_Obj;
+//struct Json_Array;
+
+
 
 struct Json_Value {
 	Value_Type type = Value_Type::NULL_TYPE;
-	std::variant<std::string, int, float, bool, Json_Obj*, std::vector<Json_Value>> value = 0;
-//	Json_Value operator[](std::string key);
+	std::variant< std::string, int, float, bool, Json_Obj*, Json_Array* > value = 0;
 	Json_Value& operator[](std::string key);
 	void operator=(std::string str);
 	void operator=(int num);
@@ -90,18 +95,13 @@ struct Json_Obj {
 	Json_Obj* parent;
 };
 
-typedef std::vector<Json_Value> Json_Array;
+
 
 struct AST_Pair_Node {
 	std::string key;
 	Json_Value value_node;
 	Json_Obj* parent;
 };
-
-//struct Json {
-//	Json_Value value = { .type = Value_Type::NULL_TYPE, .value = 0 };
-//	Json_Value& operator[](std::string key);
-//};
 
 void lex(Parser* parser);
 Json_Value parse(std::string str, bool print_error = true); // print_error -- can turn off for dev/testing purposes w/ expected errors

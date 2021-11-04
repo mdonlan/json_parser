@@ -73,7 +73,6 @@ void consume(Parser* parser) {
 			}
 			
 			parser->index = p_index;
-//			printf("comment str: %s\n", str.c_str());
 		}
 	} else if (c == '"') { // name/decl token or string value token
 		Token token;
@@ -196,6 +195,7 @@ Json_Value set_root(Token token, Parser* parser) {
 			new_array_node->type = AST_Node_Type::ARRAY;
 			new_array_node->name = "ARRAY";
 			
+			
 			Json_Value value;
 			value.type = Value_Type::ARRAY;
 			value.value = new_array_node;
@@ -286,7 +286,6 @@ Json_Value parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_e
 	Json_Value json;
 	int token_index = 0;
 	Token current_token = tokens[token_index];
-//	Json_Obj* current_node = parser->current_obj;
 	AST_Pair_Node* current_pair_node = nullptr;
 	std::string err_msg;
 	
@@ -315,31 +314,18 @@ Json_Value parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_e
 			// handle everything else
 		} else {
 			if (current_token.type == Token_Type::OPEN_CURLY_BRACKET) { // object node
+				assert(parser->current_obj);
+				AST_Pair_Node* pair_node = parser->current_obj->properties[parser->current_obj->properties.size() - 1];
+				pair_node->value_node.type = Value_Type::OBJECT;
+				current_pair_node = pair_node;
 				
-				// setup root node
-				if (!parser->current_obj) {
-					assert(false); // this should be handled in root section
-					Json_Obj* root_node = new Json_Obj;
-					root_node->type = AST_Node_Type::OBJECT;
-					root_node->name = "ROOT";
-					json.value = root_node;
-					parser->current_obj = root_node;
-				} else {
-					assert(parser->current_obj);
-					AST_Pair_Node* pair_node = parser->current_obj->properties[parser->current_obj->properties.size() - 1];
-					pair_node->value_node.type = Value_Type::OBJECT;
-					current_pair_node = pair_node;
-					
-					Json_Obj* new_object_node = new Json_Obj;
-					new_object_node->type = AST_Node_Type::OBJECT;
-					new_object_node->name = pair_node->key;
-					new_object_node->parent = parser->current_obj;
-					pair_node->value_node.value = new_object_node;
-					
-					parser->current_obj = new_object_node;
-				}
+				Json_Obj* new_object_node = new Json_Obj;
+				new_object_node->type = AST_Node_Type::OBJECT;
+				new_object_node->name = pair_node->key;
+				new_object_node->parent = parser->current_obj;
+				pair_node->value_node.value = new_object_node;
 				
-				
+				parser->current_obj = new_object_node;
 			} else if (current_token.type == Token_Type::NAME) { // name node
 				if (parser->current_obj->type != AST_Node_Type::OBJECT) assert(false);
 				
@@ -401,10 +387,8 @@ Json_Value parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_e
 						assert(false);
 					}
 				}
-			} else if (current_token.type == Token_Type::COLON) {
-	//			assert(false);
-			} else if (current_token.type == Token_Type::COMMA) {
-				
+			} else if (current_token.type == Token_Type::COLON || current_token.type == Token_Type::COMMA) {
+				// ignore
 			} else {
 				assert(false); // we should not reach this point, if we do it means wh have a token type that we are not checking
 			}
@@ -491,26 +475,6 @@ Json_Value& Json_Value::operator[](std::string key) {
 
 	return pair_node->value_node;
 }
-
-//// use this overload to access data withing a AST_Value_Node object
-//// check for keys that match the string and return their value node
-//Json_Value Json_Value::operator[](std::string key) {
-//	Json_Value value_node;
-//
-//	if (this->type == Value_Type::ARRAY) {
-//
-//	} else if (this->type == Value_Type::OBJECT) {
-//		auto node = std::get<Json_Obj*>(this->value);
-//		for (AST_Pair_Node* pair_node : node->properties) {
-//			if (pair_node->key.compare(key) == 0) {
-//				return pair_node->value_node;
-//			}
-//		}
-//	}
-//
-//	assert(false);
-//	return value_node;
-//}
 
 float get_number(Json_Value value_node) {
 	return std::get<float>(value_node.value);
