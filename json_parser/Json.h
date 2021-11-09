@@ -103,7 +103,7 @@ struct AST_Pair_Node {
 	Json_Obj* parent;
 };
 
-void lex(Parser* parser);
+void create_tokens(Parser* parser);
 Json_Value parse(std::string str, bool print_error = true); // print_error -- can turn off for dev/testing purposes w/ expected errors
 void consume(Parser* parser);
 char peek(Parser* parser, unsigned int index);

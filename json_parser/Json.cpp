@@ -401,21 +401,20 @@ Json_Value parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_e
 	return json;
 }
 
-void lex(Parser* parser) {
+void create_tokens(Parser* parser) {
 	while (!parser->eof) {
 		consume(parser);
 	}
 }
 
 Json_Value parse(std::string str, bool print_error) {
-	Parser* parser = new Parser;
-	parser->str = str;
-	lex(parser);
-	Json_Value json_data;
-	json_data = parse_tokens(parser->tokens, parser, print_error);
+	Parser* parser = new Parser { .str = str };
+	
+	create_tokens(parser);
+	Json_Value json = parse_tokens(parser->tokens, parser, print_error);
 	
 	delete parser;
-	return json_data;
+	return json;
 }
 
 const std::string load_json_from_file(const std::string& file_name) {
@@ -608,7 +607,6 @@ bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& e
 		}
 	}
 
-
 	return false;
 }
 
@@ -618,29 +616,18 @@ void json_err(const std::string& err_msg, bool print_error) {
 	}
 }
 
-const std::string Json_Value::to_str() {
-	return std::get<std::string>(this->value);
-}
-
-float Json_Value::to_float() {
-	return std::get<float>(this->value);
-}
-
-int Json_Value::to_int() {
-	return (int)std::get<float>(this->value);
-}
-
+// convert json_value to actual c++ type
+//
+const std::string Json_Value::to_str() { return std::get<std::string>(this->value); }
+float Json_Value::to_float() { return std::get<float>(this->value); }
+int Json_Value::to_int() { return (int)std::get<float>(this->value); }
 std::vector<Json_Value> Json_Value::to_array() {
 	Json_Obj* array_node = std::get<Json_Obj*>(this->value);
 	return array_node->array;
 }
+Json_Obj* Json_Value::to_obj() { return std::get<Json_Obj*>(this->value); }
+bool Json_Value::to_bool() { return std::get<bool>(this->value); }
 
-Json_Obj* Json_Value::to_obj() {
-	return std::get<Json_Obj*>(this->value);
-}
-bool Json_Value::to_bool() {
-	return std::get<bool>(this->value);
-}
 
 void json_free(Json_Value& value) {
 	if (value.type == Value_Type::OBJECT) {
