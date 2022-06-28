@@ -69,6 +69,8 @@ TEST_CASE("ARRAY TESTS") {
 		REQUIRE(array_node != nullptr);
 		REQUIRE(array_node->properties.size() == 0);
 		
+		auto test = json.to_array();
+		
 		json_free(json);
 	}
 	
@@ -302,6 +304,12 @@ TEST_CASE("NUMBERS") {
 		REQUIRE(json["test_int"].type == Value_Type::NUMBER);
 		REQUIRE(json["test_int"].to_int() == 2);
 	}
+	
+	SECTION("Negative Numbers") {
+		Json_Value json = parse(std::string(R"({"x": -1})"));
+		REQUIRE(json["x"].type == Value_Type::NUMBER);
+		REQUIRE(json["x"].to_int() == -1);
+	}
 }
 
 TEST_CASE("BOOLS") {
@@ -406,11 +414,24 @@ TEST_CASE("Write/Edit Json") {
 //		json["foo"] = ;
 	}
 	
+	SECTION("Write Json_Array") {
+		Json_Value json = parse("[ 1, 2, 3 ]");
+		Json_Array json_arr = json.to_array();
+		
+		Json_Value other_json;
+		other_json.type = Value_Type::ARRAY;
+		other_json.value = &json_arr;
+		
+//		other_json.to_array();
+		
+//		int a = 0;
+	}
+	
 }
 
-//TEST_CASE("FILE I/O") {
-//	SECTION("Write out to file") {
-//		Json json = parse(std::string{R"(
+TEST_CASE("FILE I/O") {
+	SECTION("Write out to file") {
+//		Json_Value json = parse(std::string{R"(
 //			{
 //				"test": "blah",
 //				"foo": {
@@ -418,14 +439,33 @@ TEST_CASE("Write/Edit Json") {
 //					"world": "yes"
 //				},
 //				"test_arr": [ 1, 2, 3 ],
+//				"test_arr_of_objs": [
+//					{
+//						"a": 1,
+//						"b": 2,
+//						"c": [ 1, 2, 3]
+//					},
+//					  {
+//						  "a": 3,
+//						  "b": 4,
+//						"c": [ 1, 2, 3]
+//					  },
+//					 {
+//						 "a": 5,
+//						 "b": 6,
+//					"c": [ 1, 2, 3]
+//					 },
+//				],
 //				"test_bool": false
 //			}
 //		)"});
-//
+		
+		
+//		Json_Value json = parse(load_json_from_file("ship_data.json"));
 //
 //		write_json(json_to_string(json), "write_json_test.json");
-//	}
-//}
+	}
+}
 
 TEST_CASE("JSON OBJECTS") {
 	

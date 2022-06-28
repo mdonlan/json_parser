@@ -1,0 +1,318 @@
+[
+	{
+		"name": "SHIP_1",
+		"hull": 10,
+		"power": 10,
+		"tiles": [
+			{
+				"x": 0,
+				"y": 0,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					true,
+					false,
+					false,
+					true
+				]
+			},
+			{
+				"x": 1,
+				"y": 0,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					true,
+					false,
+					false,
+					false
+				]
+			},
+			{
+				"x": 2,
+				"y": 0,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					true,
+					false,
+					false,
+					false
+				]
+			},
+			{
+				"x": 3,
+				"y": 0,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					true,
+					true,
+					false,
+					false
+				]
+			},
+			{
+				"x": 0,
+				"y": 1,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					false,
+					false,
+					false,
+					true
+				]
+			},
+			{
+				"x": 1,
+				"y": 1,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					false,
+					false,
+					false,
+					false
+				]
+			},
+			{
+				"x": 2,
+				"y": 1,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					false,
+					false,
+					false,
+					false
+				]
+			},
+			{
+				"x": 3,
+				"y": 1,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					false,
+					true,
+					false,
+					false
+				]
+			},
+			{
+				"x": 0,
+				"y": 2,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					false,
+					false,
+					true,
+					true
+				]
+			},
+			{
+				"x": 1,
+				"y": 2,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					false,
+					false,
+					true,
+					false
+				]
+			},
+			{
+				"x": 2,
+				"y": 2,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					false,
+					false,
+					true,
+					false
+				]
+			},
+			{
+				"x": 3,
+				"y": 2,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					false,
+					true,
+					true,
+					false
+				]
+			}
+		],
+		"rooms": [
+			{
+				"id": 0,
+				"has_system": true,
+				"system_name": "shields"
+			}
+		]
+	},
+	{
+		"name": "Enemy_Ship_1",
+		"hull": 10,
+		"power": 10,
+		"tiles": [
+			{
+				"x": 0,
+				"y": 0,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					true,
+					false,
+					false,
+					true
+				]
+			},
+			{
+				"x": 1,
+				"y": 0,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					true,
+					false,
+					false,
+					false
+				]
+			},
+			{
+				"x": 2,
+				"y": 0,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					true,
+					false,
+					false,
+					false
+				]
+			},
+			{
+				"x": 3,
+				"y": 0,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					true,
+					true,
+					false,
+					false
+				]
+			},
+			{
+				"x": 0,
+				"y": 1,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					false,
+					false,
+					false,
+					true
+				]
+			},
+			{
+				"x": 1,
+				"y": 1,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					false,
+					false,
+					false,
+					false
+				]
+			},
+			{
+				"x": 2,
+				"y": 1,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					false,
+					false,
+					false,
+					false
+				]
+			},
+			{
+				"x": 3,
+				"y": 1,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					false,
+					true,
+					false,
+					false
+				]
+			},
+			{
+				"x": 0,
+				"y": 2,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					false,
+					false,
+					true,
+					true
+				]
+			},
+			{
+				"x": 1,
+				"y": 2,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					false,
+					false,
+					true,
+					false
+				]
+			},
+			{
+				"x": 2,
+				"y": 2,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					false,
+					false,
+					true,
+					false
+				]
+			},
+			{
+				"x": 3,
+				"y": 2,
+				"type": "floor",
+				"room_id": 0,
+				"walls": [
+					false,
+					true,
+					true,
+					false
+				]
+			}
+		],
+		"rooms": [
+			{
+				"id": 0,
+				"has_system": true,
+				"system_name": "shields"
+			}
+		]
+	}
+]

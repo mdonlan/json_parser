@@ -121,6 +121,11 @@ void consume(Parser* parser) {
 		bool found_end_of_number = false;
 		unsigned int p_index = parser->index + 1;
 		
+		// check if number is negative
+		bool is_neg = false;
+		char prev_char = peek(parser, parser->index - 1);
+		if (prev_char == '-') is_neg = true;
+		
 		while (!found_end_of_number) {
 			char pc = peek(parser, p_index);
 			if (!isdigit(pc) && pc != '.') {
@@ -131,7 +136,9 @@ void consume(Parser* parser) {
 			}
 		}
 		
-		token.value = std::stof(num_str);
+		float value = std::stof(num_str);
+		if (is_neg) value *= -1;
+		token.value = value;
 		parser->tokens.push_back(token);
 		parser->index += num_str.size();
 	}
@@ -289,6 +296,8 @@ Json_Value parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_e
 	AST_Pair_Node* current_pair_node = nullptr;
 	std::string err_msg;
 	
+	Json_Value json_test;
+	
 	while (current_token.type != Token_Type::END_OF_FILE) {
 		
 		if (!is_valid_syntax(tokens, token_index, err_msg, print_error)) {
@@ -296,9 +305,9 @@ Json_Value parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_e
 			json.value = err_msg;
 			return json;
 		}
-		
+
 		// handle setting the root value
-		if (parser->current_obj == nullptr) {
+		if (json.type == Value_Type::NULL_TYPE) {
 			Json_Value root_value = set_root(current_token, parser);
 			if (root_value.type == Value_Type::ERROR) {
 				return json;
@@ -412,6 +421,8 @@ Json_Value parse(std::string str, bool print_error) {
 	
 	create_tokens(parser);
 	Json_Value json = parse_tokens(parser->tokens, parser, print_error);
+	
+//	m_parse_tokens(parser->tokens);
 	
 	delete parser;
 	return json;
@@ -665,6 +676,15 @@ void Json_Value::operator=(std::string str) {
 	this->value = json.value;
 }
 
+//void Json_Value::operator=(Json_Array arr) {
+//	this->type = Value_Type::ARRAY;
+////	this->value = arr;
+////	Json_Array new_arr;
+////	for (Json_Value value : arr) {
+////
+////	}
+//}
+
 void print_value(Json_Value value) {
 	if (value.type == Value_Type::STRING) {
 		printf("%s\n", value.to_str().c_str());
@@ -750,3 +770,79 @@ std::string json_to_string(const Json_Value& json) {
 	printf("%s\n", result.c_str());
 	return result;
 }
+
+//void m_parse_object(std::vector<Token>& tokens, int start_index) {
+//	for (int i = start_index; i < tokens.size(); i++) {
+//		Token& token = tokens[i];
+//		if (token.type == Token_Type::NUMBER) {
+//
+//		}
+//	}
+//}
+//
+//void m_parse_tokens(std::vector<Token>& tokens) {
+//	m_json_value json;
+//	m_json_value current_value;
+//
+//	for (int i = 0; i < tokens.size(); i++) {
+//		Token& token = tokens[i];
+//		if (token.type == Token_Type::OPEN_CURLY_BRACKET) {
+//			m_parse_object(tokens, i);
+//		}
+//	}
+//}
+
+
+/*
+ switch (token.type) {
+	 case Token_Type::OPEN_CURLY_BRACKET: {
+		 m_json_obj new_obj;
+		 current_value.type = Value_Type::OBJECT;
+		 current_value.value = new_obj;
+		 json.type = Value_Type::OBJECT;
+		 json.value = new_obj;
+	 } break;
+	 case Token_Type::CLOSED_CURLY_BRACKET: {
+//				assert(false);
+//				json.value = current_value;
+	 } break;
+	 case Token_Type::STRING_VALUE: {
+		 assert(false);
+	 } break;
+	 case Token_Type::NAME: {
+		 m_json_obj obj = json.to_obj();
+		 std::string name = std::get<std::string>(token.value);
+		 obj[name] = m_json_value{};
+	 } break;
+	 case Token_Type::NUMBER: {
+//				json.
+//				assert(false);
+	 } break;
+	 case Token_Type::BOOL: {
+		 assert(false);
+	 } break;
+	 case Token_Type::COLON: {
+//				assert(false);
+	 } break;
+	 case Token_Type::OPEN_SQUARE_BRACKET: {
+		 assert(false);
+	 } break;
+	 case Token_Type::CLOSED_SQUARE_BRACKET: {
+		 assert(false);
+	 } break;
+	 case Token_Type::COMMA: {
+		 assert(false);
+	 } break;
+	 case Token_Type::END_OF_FILE: {
+//				assert(false);
+	 } break;
+	 case Token_Type::COMMENT: {
+		 assert(false);
+	 } break;
+	 case Token_Type::UNTERMINATED_STRING: {
+		 assert(false);
+	 } break;
+	 default:
+		 break;
+ }
+ */
