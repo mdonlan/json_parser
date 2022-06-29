@@ -9,15 +9,39 @@
 #define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
 #include "Tests.h"
+//#include <type_traits>
+//#include <variant>
+#define DEVMODE 1
 
-#define DEVMODE 0
+//template <class... Fs> struct Overload : Fs... { using Fs::operator()...; };
+//template <class... Fs> Overload(Fs...) -> Overload<Fs...>;
 
 int main(int argc, const char * argv[]) {
 	
-	Json_Value json = parse(load_json_from_file("json_testing.json"));
+//	Json_Value json = parse(load_json_from_file("json_testing.json"));
+//
+////	std::string, int, float, bool, Json_Obj*, Json_Array*, Json_Obj_Test*
+//	auto blah = std::visit(
+//		Overload{
+//			[] (std::string k) { return k; },
+//			[] (int k) { return k; },
+//			[] (float k) { return k; },
+//			[] (bool k) { return k; },
+//			[] (Json_Obj* k) { return k; },
+//			[] (Json_Array* k) { return k; },
+//			[] (Json_Obj_Test* k) {return k; }
+////			[] (bool k) { /* deal with k here */ },
+////			[] (std::string k) { /* deal with k here */ }
+//		},
+//	   json.value
+//	);
 	
-	int a = 0;
-	(void)a;
+//	int i = json["id"].value;
+	
+//	Json_Value json = parse(load_json_from_file("json_testing.json"));
+//
+//	int a = 0;
+//	(void)a;
 //	json["foo"] = 3;
 //	json["bar"] = "hello world";
 //	

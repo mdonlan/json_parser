@@ -1,9 +1,10 @@
 {
-	"blah": 1,
+	"id": 1,
 	"hello": 3,
 	"world": [1, 2, 3],
 	"what": {
 		"yes": 5
 	},
-	"monday": 7
+	"monday": 7,
+	"can_bool": false
 }

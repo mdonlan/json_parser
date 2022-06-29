@@ -57,14 +57,14 @@ typedef std::pair<std::string, Json_Value> Pair;
 struct Json_Value {
 	Value_Type type = Value_Type::NULL_TYPE;
 	std::variant<std::string, int, float, bool, Json_Obj*, Json_Array*, Json_Obj_Test*> value = 0;
-//	Json_Value& operator[](std::string key);
+	Json_Value& operator[](std::string key);
 	void operator=(std::string str);
 	void operator=(int num);
 	const std::string to_str();
 	float to_float();
 	int to_int();
-	std::vector<Json_Value> to_array();
-	Json_Obj* to_obj();
+	Json_Array* to_array();
+	Json_Obj_Test* to_obj();
 	bool to_bool();
 };
 
@@ -119,6 +119,8 @@ struct AST_Pair_Node {
 	Json_Value value_node;
 	Json_Obj* parent;
 };
+
+
 
 
 ///* new stuff */

@@ -256,11 +256,6 @@ void add_value(Parser* parser, Json_Value value) {
 }
 
 void parse_token(Token token, Parser* parser) {
-
-	/*
-		
-	*/
-	
 	if (parser->has_set_root == false) {
 		set_root(parser);
 	} else if (token.type == Token_Type::NAME) {
@@ -285,6 +280,11 @@ void parse_token(Token token, Parser* parser) {
 		Json_Value value;
 		value.type = Value_Type::NUMBER;
 		value.value = std::get<float>(token.value);
+		add_value(parser, value);
+	} else if (token.type == Token_Type::BOOL) {
+		Json_Value value;
+		value.type = Value_Type::BOOL;
+		value.value = std::get<bool>(token.value);
 		add_value(parser, value);
 	} else if (token.type == Token_Type::COLON ||
 			   token.type == Token_Type::COMMA) {
@@ -333,7 +333,18 @@ void parse_array(Parser* parser) {
 	arr_value.type = Value_Type::ARRAY;
 	arr_value.value = new Json_Array{};
 	
-	(*parser->test_active_obj)[parser->active_name] = arr_value;
+	if (!parser->has_set_root) {
+		parser->json_test = arr_value;
+	} else {
+		if (parser->test_active_value.type == Value_Type::ARRAY) {
+			add_value(parser, arr_value);
+		} else if (parser->test_active_value.type == Value_Type::OBJECT) {
+			(*parser->test_active_obj)[parser->active_name] = arr_value;
+			(*parser->test_active_obj)[parser->active_name] = arr_value;
+		}
+	}
+	
+	
 	parser->test_active_arr = std::get<Json_Array*>(arr_value.value);
 	parser->test_active_value = arr_value;
 //	parser->test_active_obj = std::get<Json_Obj_Test*>(obj_value.value);
@@ -579,8 +590,28 @@ const std::string load_json_from_file(const std::string& file_name) {
 // use this overload to access data withing a Json_Data object
 // check for keys that match the string and return their value node
 // if there is no matching key then return an empty value
-//Json_Value& Json_Value::operator[](std::string key) {
-//
+Json_Value& Json_Value::operator[](std::string key) {
+	
+	Json_Value value;
+	
+	if (this->type == Value_Type::OBJECT) {
+		Json_Obj_Test* obj = this->to_obj();
+		value = (*obj)[key];
+		
+		Json_Value& test = obj->at(key);
+		return test;
+//		auto test = obj->find(key);
+//		return &test->second;
+		
+		int a = 0;
+		(void)a;
+	} else {
+		assert(false);
+	}
+
+	int a = 0;
+	(void)a;
+	return value;
 //	// if we are trying to set a value in a Json object that was just created
 //	// it will be of type NULL_TYPE, we need to convert it to an OBJECT type
 //	if (this->type == Value_Type::NULL_TYPE) {
@@ -618,7 +649,7 @@ const std::string load_json_from_file(const std::string& file_name) {
 //	pair_node->value_node = value_node;
 //
 //	return pair_node->value_node;
-//}
+}
 
 float get_number(Json_Value value_node) {
 	return std::get<float>(value_node.value);
@@ -766,32 +797,48 @@ void json_err(const std::string& err_msg, bool print_error) {
 const std::string Json_Value::to_str() { return std::get<std::string>(this->value); }
 float Json_Value::to_float() { return std::get<float>(this->value); }
 int Json_Value::to_int() { return (int)std::get<float>(this->value); }
-std::vector<Json_Value> Json_Value::to_array() {
-	Json_Obj* array_node = std::get<Json_Obj*>(this->value);
-	return array_node->array;
-}
-Json_Obj* Json_Value::to_obj() { return std::get<Json_Obj*>(this->value); }
+//std::vector<Json_Value> Json_Value::to_array() {
+//	Json_Obj* array_node = std::get<Json_Obj*>(this->value);
+//	return array_node->array;
+//}
+Json_Array* Json_Value::to_array() { return std::get<Json_Array*>(this->value); }
+Json_Obj_Test* Json_Value::to_obj() { return std::get<Json_Obj_Test*>(this->value); }
 bool Json_Value::to_bool() { return std::get<bool>(this->value); }
 
 
 void json_free(Json_Value& value) {
 	if (value.type == Value_Type::OBJECT) {
-		for (auto property : value.to_obj()->properties) {
-			if (property->value_node.type == Value_Type::OBJECT || property->value_node.type == Value_Type::ARRAY) {
-				json_free(property->value_node);
+		for (auto& it : (*value.to_obj())) {
+			if (it.second.type == Value_Type::OBJECT) {
+				json_free(it.second);
 			}
 		}
-		auto obj = value.to_obj();
-		delete obj;
+		delete value.to_obj();
 	} else if (value.type == Value_Type::ARRAY) {
-		for (auto item : value.to_array()) {
-			if (item.type == Value_Type::OBJECT || item.type == Value_Type::ARRAY) {
-				json_free(item);
+		for (auto& it : (*value.to_obj())) {
+			if (it.second.type == Value_Type::OBJECT) {
+				json_free(it.second);
 			}
 		}
-		auto arr = value.to_obj();
-		delete arr;
+		delete value.to_array();
 	}
+//	if (value.type == Value_Type::OBJECT) {
+//		for (auto property : value.to_obj()->properties) {
+//			if (property->value_node.type == Value_Type::OBJECT || property->value_node.type == Value_Type::ARRAY) {
+//				json_free(property->value_node);
+//			}
+//		}
+//		auto obj = value.to_obj();
+//		delete obj;
+//	} else if (value.type == Value_Type::ARRAY) {
+//		for (auto item : value.to_array()) {
+//			if (item.type == Value_Type::OBJECT || item.type == Value_Type::ARRAY) {
+//				json_free(item);
+//			}
+//		}
+//		auto arr = value.to_obj();
+//		delete arr;
+//	}
 }
 
 void Json_Value::operator=(int num) {
@@ -844,66 +891,66 @@ void do_indent(std::string& str, int indent) {
 	}
 }
 
-std::string get_string_from_value(Json_Value value, int indent) {
-	std::string str;
-	if (value.type == Value_Type::OBJECT) {
-		indent++;
-		str += "{\n";
-		for (auto& prop : value.to_obj()->properties) {
-			do_indent(str, indent);
-			str += "\"";
-			str += prop->key;
-			str += "\"";
-			str += ": ";
-			str += get_string_from_value(prop->value_node, indent);
-			
-			if (prop != value.to_obj()->properties.back()) {
-				str += ",\n";
-			}
-		}
-		indent--;
-		str += "\n";
-		do_indent(str, indent);
-		str += '}';
-	} else if (value.type == Value_Type::STRING) {
-		str += "\"";
-		str += value.to_str();
-		str += "\"";
-	} else if (value.type == Value_Type::NUMBER) {
-		if (value.to_float() == ceil(value.to_float())) {
-			str += std::to_string(value.to_int());
-		} else {
-			str += std::to_string(value.to_float());
-		}
-	} else if (value.type == Value_Type::ARRAY) {
-		str += "[ ";
-		Json_Array array = value.to_array();
-		for (int i = 0; i < array.size(); i++) {
-			str += get_string_from_value(array[i], indent);
-			if (i < array.size() - 1) {
-				str += ", ";
-			}
-		}
-		str += " ]";
-	} else if (value.type == Value_Type::BOOL) {
-		if (value.to_bool() == false) {
-			str += "false";
-		} else {
-			str += "true";
-		}
-	} else {
-		assert(false);
-	}
-	
-	return str;
-}
+//std::string get_string_from_value(Json_Value value, int indent) {
+//	std::string str;
+//	if (value.type == Value_Type::OBJECT) {
+//		indent++;
+//		str += "{\n";
+//		for (auto& prop : value.to_obj()->properties) {
+//			do_indent(str, indent);
+//			str += "\"";
+//			str += prop->key;
+//			str += "\"";
+//			str += ": ";
+//			str += get_string_from_value(prop->value_node, indent);
+//
+//			if (prop != value.to_obj()->properties.back()) {
+//				str += ",\n";
+//			}
+//		}
+//		indent--;
+//		str += "\n";
+//		do_indent(str, indent);
+//		str += '}';
+//	} else if (value.type == Value_Type::STRING) {
+//		str += "\"";
+//		str += value.to_str();
+//		str += "\"";
+//	} else if (value.type == Value_Type::NUMBER) {
+//		if (value.to_float() == ceil(value.to_float())) {
+//			str += std::to_string(value.to_int());
+//		} else {
+//			str += std::to_string(value.to_float());
+//		}
+//	} else if (value.type == Value_Type::ARRAY) {
+//		str += "[ ";
+//		Json_Array array = value.to_array();
+//		for (int i = 0; i < array.size(); i++) {
+//			str += get_string_from_value(array[i], indent);
+//			if (i < array.size() - 1) {
+//				str += ", ";
+//			}
+//		}
+//		str += " ]";
+//	} else if (value.type == Value_Type::BOOL) {
+//		if (value.to_bool() == false) {
+//			str += "false";
+//		} else {
+//			str += "true";
+//		}
+//	} else {
+//		assert(false);
+//	}
+//
+//	return str;
+//}
 
-std::string json_to_string(const Json_Value& json) {
-	Json_Value current_value = json;
-	std::string result = get_string_from_value(current_value, 0);
-	printf("%s\n", result.c_str());
-	return result;
-}
+//std::string json_to_string(const Json_Value& json) {
+//	Json_Value current_value = json;
+//	std::string result = get_string_from_value(current_value, 0);
+//	printf("%s\n", result.c_str());
+//	return result;
+//}
 
 //void m_parse_object(std::vector<Token>& tokens, int start_index) {
 //	for (int i = start_index; i < tokens.size(); i++) {
