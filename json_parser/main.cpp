@@ -10,11 +10,14 @@
 #include "catch.hpp"
 #include "Tests.h"
 
-#define DEVMODE 1
+#define DEVMODE 0
 
 int main(int argc, const char * argv[]) {
 	
-//	Json_Value json = parse("{}");
+	Json_Value json = parse(load_json_from_file("json_testing.json"));
+	
+	int a = 0;
+	(void)a;
 //	json["foo"] = 3;
 //	json["bar"] = "hello world";
 //	

@@ -38,21 +38,7 @@ struct Token {
 struct Json_Obj;
 struct Json_Value;
 typedef std::vector<Json_Value> Json_Array;
-
-struct Parser {
-	unsigned int index = 0;
-	bool eof = false;
-	std::string str;
-	std::vector<Token> tokens;
-	std::string cache; // chars left that were not matching anything
-	Json_Obj* current_obj = nullptr;
-	Json_Array* current_arr = nullptr;
-};
-
-enum class AST_Node_Type {
-	OBJECT,
-	ARRAY
-};
+//struct Pair;
 
 enum class Value_Type {
 	NUMBER,
@@ -65,10 +51,13 @@ enum class Value_Type {
 	EMPTY
 };
 
+typedef std::map<std::string, Json_Value> Json_Obj_Test;
+typedef std::pair<std::string, Json_Value> Pair;
+
 struct Json_Value {
 	Value_Type type = Value_Type::NULL_TYPE;
-	std::variant<std::string, int, float, bool, Json_Obj*, Json_Array*> value = 0;
-	Json_Value& operator[](std::string key);
+	std::variant<std::string, int, float, bool, Json_Obj*, Json_Array*, Json_Obj_Test*> value = 0;
+//	Json_Value& operator[](std::string key);
 	void operator=(std::string str);
 	void operator=(int num);
 	const std::string to_str();
@@ -78,6 +67,33 @@ struct Json_Value {
 	Json_Obj* to_obj();
 	bool to_bool();
 };
+
+
+
+struct Parser {
+	unsigned int index = 0;
+	bool eof = false;
+	std::string str;
+	std::vector<Token> tokens;
+	std::string cache; // chars left that were not matching anything
+	Json_Obj* current_obj = nullptr;
+	Json_Array* current_arr = nullptr;
+//	Pair* current_pair = nullptr;
+//	Json_Obj* root = nullptr;
+//	Json_Value json;
+	Json_Obj_Test* test_active_obj = nullptr;
+	Json_Value json_test;
+	std::string active_name; // the last name set
+	unsigned int token_index = 0;
+	bool has_set_root = false;
+};
+
+enum class AST_Node_Type {
+	OBJECT,
+	ARRAY
+};
+
+
 
 struct AST_Pair_Node;
 
@@ -90,7 +106,11 @@ struct Json_Obj {
 	Json_Obj* parent;
 };
 
-typedef std::map<std::string, Json_Value> Json_Obj_Test;
+
+//struct Pair {
+//	std::string key;
+//	Json_Value value;
+//};
 
 struct AST_Pair_Node {
 	std::string key;
@@ -133,8 +153,10 @@ void write_json(std::string json_str, std::string filename);
 std::string json_to_string(const Json_Value& json);
 
 // new parsing stuff...
-Json_Value set_root(Token token, Parser* parser);
-void parse_array(Token token, Parser* parser);
+void set_root(Parser* parser);
+void parse_array(Parser* parser);
 
+void parse_token(Token token, Parser* parser);
+void parse_object(Parser* parser);
 
 #endif /* json_h */
