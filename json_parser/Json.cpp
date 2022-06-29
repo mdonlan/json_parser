@@ -244,6 +244,17 @@ void set_root(Parser* parser) {
 	}
 }
 
+void add_value(Parser* parser, Json_Value value) {
+	if (parser->test_active_value.type == Value_Type::OBJECT) {
+		Json_Obj_Test& obj = *parser->test_active_obj;
+		obj[parser->active_name] = value;
+	} else if (parser->test_active_value.type == Value_Type::ARRAY) {
+		parser->test_active_arr->push_back(value);
+	} else {
+		assert(false);
+	}
+}
+
 void parse_token(Token token, Parser* parser) {
 
 	/*
@@ -265,24 +276,18 @@ void parse_token(Token token, Parser* parser) {
 		Json_Value string_value;
 		string_value.type = Value_Type::STRING;
 		string_value.value = std::get<std::string>(token.value);
-//		obj[parser->active_name].value = Json_Value{};
-//		auto it = obj.find(parser->active_name);
-//		it->second.value = Json_Value{};
+		add_value(parser, string_value);
 	} else if (token.type == Token_Type::OPEN_SQUARE_BRACKET) {
 		parse_array(parser);
 	} else if (token.type == Token_Type::OPEN_CURLY_BRACKET) {
 		parse_object(parser);
 	} else if (token.type == Token_Type::NUMBER) {
-		Json_Obj_Test& obj = *parser->test_active_obj;
 		Json_Value value;
 		value.type = Value_Type::NUMBER;
 		value.value = std::get<float>(token.value);
-
-//		obj["test"] = Json_Value{};
-//		parser->test_active_obj->operator[]("apple") = 1;
-//		(Json_Obj_Test*)parser->test_active_obj["test"] = Json_Value{};
-		obj[parser->active_name] = std::get<float>(token.value);
-	} else if (token.type == Token_Type::COLON) {
+		add_value(parser, value);
+	} else if (token.type == Token_Type::COLON ||
+			   token.type == Token_Type::COMMA) {
 		// skip these
 	} else {
 		assert(false);
@@ -292,37 +297,25 @@ void parse_token(Token token, Parser* parser) {
 }
 
 void parse_object(Parser* parser) {
-//	int index = parser->index;
-	
-//	Pair current_pair;
-	
-//	current_pair =
-	
-//	Json_Array* arr = new Json_Array;
-	
-//	auto it = parser->json_test.find(parser->active_name);
-//	it->second.type = Value_Type::ARRAY;
-//	it->second.value = new Json_Array;
-	
-	
-	
 	Json_Value obj_value;
 	obj_value.type = Value_Type::OBJECT;
 	obj_value.value = new Json_Obj_Test{};
 	
-	parser->test_active_obj = std::get<Json_Obj_Test*>(obj_value.value);
+	
 	
 	if (!parser->has_set_root) {
 //		parser->json_test_obj = obj_value;
 		parser->json_test = obj_value;
 		parser->has_set_root = true;
+	} else {
+		(*parser->test_active_obj)[parser->active_name] = obj_value;
 	}
 	
+	Json_Obj_Test* prev = parser->test_active_obj;
 	
-//	parser->json_test[parser->active_name].value = new Json_Array;
-//	Pair pair = *parser->json_test.find(parser->active_name);
-//	Json_Value& current_value = parser->json_test.find(parser->active_name)->second;
-//	Json_Array arr = current_value.to_array();
+	parser->test_active_obj = std::get<Json_Obj_Test*>(obj_value.value);
+	parser->test_active_value = obj_value;
+
 	parser->token_index++;
 	Token current_token = parser->tokens[parser->token_index];
 	
@@ -331,28 +324,35 @@ void parse_object(Parser* parser) {
 		current_token = parser->tokens[parser->token_index];
 	}
 	
-	
+	parser->test_active_obj = prev;
 }
 
 void parse_array(Parser* parser) {
 	
-//	int index = parser->index;
+	Json_Value arr_value;
+	arr_value.type = Value_Type::ARRAY;
+	arr_value.value = new Json_Array{};
+	
+	(*parser->test_active_obj)[parser->active_name] = arr_value;
+	parser->test_active_arr = std::get<Json_Array*>(arr_value.value);
+	parser->test_active_value = arr_value;
+//	parser->test_active_obj = std::get<Json_Obj_Test*>(obj_value.value);
+	
+//	if (!parser->has_set_root) {
+////		parser->json_test_obj = obj_value;
+//		parser->json_test = obj_value;
+//		parser->has_set_root = true;
+//	}
+
+	parser->token_index++;
 	Token current_token = parser->tokens[parser->token_index];
-//	Pair current_pair;
 	
-//	current_pair =
+	while (current_token.type != Token_Type::CLOSED_SQUARE_BRACKET) {
+		parse_token(current_token, parser);
+		current_token = parser->tokens[parser->token_index];
+	}
 	
-//	Json_Array* arr = new Json_Array;
-	
-//	auto it = parser->json_test.find(parser->active_name);
-//	it->second.type = Value_Type::ARRAY;
-//	it->second.value = new Json_Array;
-	
-//	parser->json_test[parser->active_name].value = new Json_Array;
-//	Pair pair = *parser->json_test_.find(parser->active_name);
-//	Json_Value& current_value = parser->json_test.find(parser->active_name)->second;
-//	Json_Array arr = current_value.to_array();
-	
+
 //
 //	while (current_token.type != Token_Type::CLOSED_SQUARE_BRACKET) {
 //		if (current_token.type == Token_Type::STRING_VALUE) {

@@ -83,6 +83,8 @@ struct Parser {
 //	Json_Value json;
 	Json_Obj_Test* test_active_obj = nullptr;
 	Json_Value json_test;
+	Json_Value test_active_value;
+	Json_Array* test_active_arr = nullptr;
 	std::string active_name; // the last name set
 	unsigned int token_index = 0;
 	bool has_set_root = false;
@@ -158,5 +160,6 @@ void parse_array(Parser* parser);
 
 void parse_token(Token token, Parser* parser);
 void parse_object(Parser* parser);
+void add_value(Parser* parser, Json_Value value);
 
 #endif /* json_h */

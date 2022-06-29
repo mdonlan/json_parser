@@ -1,3 +1,9 @@
 {
-	"blah": 1
+	"blah": 1,
+	"hello": 3,
+	"world": [1, 2, 3],
+	"what": {
+		"yes": 5
+	},
+	"monday": 7
 }
