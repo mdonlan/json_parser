@@ -13,10 +13,46 @@
 //#include <variant>
 #define DEVMODE 1
 
-//template <class... Fs> struct Overload : Fs... { using Fs::operator()...; };
-//template <class... Fs> Overload(Fs...) -> Overload<Fs...>;
+
 
 int main(int argc, const char * argv[]) {
+	
+//	Json_Value value;
+//	value = 5;
+//
+//	int test = value.value;
+//
+//	value.value.get<int>()
+//
+//	value = "hello";
+//
+//	printf("value: %s", value.to_str().c_str());
+//	std::string blah = value.value;
+//
+//	int a = 0;
+//	(void)a;
+////
+//	Variant  v{"hello"};
+//
+//	std::string l = v;  // compile and works run-time
+//
+//   std::string s = v;
+	
+//	test_variant test = 1;
+//	test = "Hello";
+//
+//	Value blah = 5;
+//	blah = 7;
+//	blah = "hello";
+//
+////	int testing = test.get();
+//
+//	int a = 0;
+//	(void)a;
+//	Result<int> test = 5;
+//	printf("%d\n", test.get());
+//	Result<std::string> test2 = std::string("hello");
+//	printf("%s\n", test2.get().c_str());
 	
 //	Json_Value json = parse(load_json_from_file("json_testing.json"));
 //

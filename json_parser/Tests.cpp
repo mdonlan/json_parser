@@ -59,7 +59,7 @@ TEST_CASE("ARRAY TESTS") {
 //		REQUIRE(pair_node->key.compare("nested_array") == 0);
 //		REQUIRE(pair_node->value_node.type == Value_Type::ARRAY);
 //		REQUIRE(std::get<Json_Obj*>(pair_node->value_node.value)->array.size() == 1);
-		
+
 		Json_Value arr_value = json["nested_array"];
 		REQUIRE(arr_value.type == Value_Type::ARRAY);
 		REQUIRE(arr_value.to_array()->size() == 1);
@@ -67,41 +67,34 @@ TEST_CASE("ARRAY TESTS") {
 		json_free(json);
 	}
 
-//	SECTION("Naked Array") {
-//		Json_Value json = parse(std::string{R"(
-//			[]
-//		)"});
-//
-//		Json_Obj* array_node = json.to_obj();
-//
-//		REQUIRE(array_node != nullptr);
-//		REQUIRE(array_node->properties.size() == 0);
-//
-//		auto test = json.to_array();
-//
-//		json_free(json);
-//	}
-//
-//	SECTION("Naked Array w/ data") {
-//		Json_Value json = parse(std::string{R"(
-//			[
-//				{
-//					"a": "test"
-//				},
-//				{
-//					"b": "blah"
-//				}
-//			]
-//		)"});
-//
-//		Json_Obj* array_node = json.to_obj();
-//
-//		REQUIRE(array_node != nullptr);
-//		REQUIRE(array_node->properties.size() == 0);
-//		REQUIRE(array_node->array.size() == 2);
-//
-//		json_free(json);
-//	}
+	SECTION("Naked Array") {
+		Json_Value json = parse(std::string{R"(
+			[]
+		)"});
+
+		REQUIRE(json.type == Value_Type::ARRAY);
+		REQUIRE(json.to_array()->size() == 0);
+
+		json_free(json);
+	}
+
+	SECTION("Naked Array w/ data") {
+		Json_Value json = parse(std::string{R"(
+			[
+				{
+					"a": "test"
+				},
+				{
+					"b": "blah"
+				}
+			]
+		)"});
+
+		REQUIRE(json.type == Value_Type::ARRAY);
+		REQUIRE(json.to_array()->size() == 2);
+
+		json_free(json);
+	}
 //
 //	SECTION("Array of numbers") {
 //		Json_Value json = parse(std::string{R"(

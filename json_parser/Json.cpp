@@ -308,10 +308,19 @@ void parse_object(Parser* parser) {
 		parser->json_test = obj_value;
 		parser->has_set_root = true;
 	} else {
-		(*parser->test_active_obj)[parser->active_name] = obj_value;
+//		(*parser->test_active_obj)[parser->active_name] = obj_value;
+		if (parser->test_active_value.type == Value_Type::OBJECT) {
+			(*parser->test_active_obj)[parser->active_name] = obj_value;
+		} else if (parser->test_active_value.type == Value_Type::ARRAY) {
+			parser->test_active_arr->push_back(obj_value);
+		}
 	}
 	
 	Json_Obj_Test* prev = parser->test_active_obj;
+	
+	if (parser->test_active_value.type != Value_Type::NULL_TYPE) {
+		parser->prev_active_value = parser->test_active_value;
+	}
 	
 	parser->test_active_obj = std::get<Json_Obj_Test*>(obj_value.value);
 	parser->test_active_value = obj_value;
@@ -325,6 +334,9 @@ void parse_object(Parser* parser) {
 	}
 	
 	parser->test_active_obj = prev;
+	
+	parser->test_active_value = parser->prev_active_value;
+	
 }
 
 void parse_array(Parser* parser) {
@@ -335,6 +347,7 @@ void parse_array(Parser* parser) {
 	
 	if (!parser->has_set_root) {
 		parser->json_test = arr_value;
+		parser->has_set_root = true;
 	} else {
 		if (parser->test_active_value.type == Value_Type::ARRAY) {
 			add_value(parser, arr_value);
@@ -344,8 +357,11 @@ void parse_array(Parser* parser) {
 		}
 	}
 	
+	if (parser->test_active_value.type != Value_Type::NULL_TYPE) {
+		parser->prev_active_value = parser->test_active_value;
+	}
 	
-	parser->test_active_arr = std::get<Json_Array*>(arr_value.value);
+	parser->test_active_arr = arr_value.to_array();
 	parser->test_active_value = arr_value;
 //	parser->test_active_obj = std::get<Json_Obj_Test*>(obj_value.value);
 	
@@ -363,7 +379,7 @@ void parse_array(Parser* parser) {
 		current_token = parser->tokens[parser->token_index];
 	}
 	
-
+	parser->test_active_value = parser->prev_active_value;
 //
 //	while (current_token.type != Token_Type::CLOSED_SQUARE_BRACKET) {
 //		if (current_token.type == Token_Type::STRING_VALUE) {
@@ -815,9 +831,9 @@ void json_free(Json_Value& value) {
 		}
 		delete value.to_obj();
 	} else if (value.type == Value_Type::ARRAY) {
-		for (auto& it : (*value.to_obj())) {
-			if (it.second.type == Value_Type::OBJECT) {
-				json_free(it.second);
+		for (Json_Value& it : (*value.to_array())) {
+			if (it.type == Value_Type::OBJECT) {
+				json_free(it);
 			}
 		}
 		delete value.to_array();

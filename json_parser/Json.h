@@ -53,10 +53,57 @@ enum class Value_Type {
 
 typedef std::map<std::string, Json_Value> Json_Obj_Test;
 typedef std::pair<std::string, Json_Value> Pair;
+//
+//using variant_t = std::variant<std::monostate, std::string, int, float, bool, Json_Obj*, Json_Array*, Json_Obj_Test*>;
+//
+//struct Variant {
+//	variant_t  var_;
+//
+//	explicit Variant (variant_t var) : var_(std::move(var)){}
+//
+//	Variant(int i){var_ = i;};
+//	Variant(std::string str){var_ = str;};
+//	Variant(char* ch){var_ = ch;};
+//	Variant(Json_Obj_Test* obj){var_ = obj;};
+//	Variant(Json_Array* arr){var_ = arr;};
+//
+//	enum TypeId {
+//		EMPTY = 0,
+//		STRING = 1,
+//		INT32 = 2,
+////		INT32 = 3,
+////		UINT32 = 4,
+////		INT64 = 5,
+////		UINT64 = 6,
+////		FLOAT = 7,
+////		DOUBLE = 8,
+////		CHAR = 9,
+////		UCHAR = 10,
+////		DOUBLEVECTOR = 11
+//	};
+//
+//	TypeId type () const { return (Variant::TypeId) var_.index(); }
+//
+////	template <typename VariantType>
+////	VariantType get () const {
+////		return std::get<VariantType>(var_);
+////	}
+//
+//	template <typename T>
+//	operator T () const {
+//		return std::visit([](auto const & val) {
+//			if constexpr (std::is_convertible_v<decltype(val), T>)
+//			  return T(val);
+//			else
+//			  {throw std::bad_variant_access{}; return T{}; }
+//		}, var_);
+//	}
+//};
 
 struct Json_Value {
 	Value_Type type = Value_Type::NULL_TYPE;
-	std::variant<std::string, int, float, bool, Json_Obj*, Json_Array*, Json_Obj_Test*> value = 0;
+//	Variant value = 0;
+	std::variant<std::monostate, std::string, int, float, bool, Json_Obj*, Json_Array*, Json_Obj_Test*> value = 0;
 	Json_Value& operator[](std::string key);
 	void operator=(std::string str);
 	void operator=(int num);
@@ -88,6 +135,9 @@ struct Parser {
 	std::string active_name; // the last name set
 	unsigned int token_index = 0;
 	bool has_set_root = false;
+//	Json_Array* prev_active_arr = nullptr;
+//	Json_Obj_Test* prev_active_obj = nullptr;
+	Json_Value prev_active_value;
 };
 
 enum class AST_Node_Type {
