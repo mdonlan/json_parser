@@ -105,6 +105,7 @@ struct Json_Value {
 //	Variant value = 0;
 	std::variant<std::monostate, std::string, int, float, bool, Json_Obj*, Json_Array*, Json_Obj_Test*> value = 0;
 	Json_Value& operator[](std::string key);
+	Json_Value& operator[](int i);
 	void operator=(std::string str);
 	void operator=(int num);
 	const std::string to_str();
@@ -128,16 +129,18 @@ struct Parser {
 //	Pair* current_pair = nullptr;
 //	Json_Obj* root = nullptr;
 //	Json_Value json;
-	Json_Obj_Test* test_active_obj = nullptr;
+	//Json_Obj_Test* test_active_obj = nullptr;
 	Json_Value json_test;
 	Json_Value test_active_value;
-	Json_Array* test_active_arr = nullptr;
+	//Json_Array* test_active_arr = nullptr;
 	std::string active_name; // the last name set
 	unsigned int token_index = 0;
 	bool has_set_root = false;
 //	Json_Array* prev_active_arr = nullptr;
 //	Json_Obj_Test* prev_active_obj = nullptr;
 	Json_Value prev_active_value;
+	std::vector<Json_Value> parents;
+	bool finished = false; // is the parser finished parsing
 };
 
 enum class AST_Node_Type {

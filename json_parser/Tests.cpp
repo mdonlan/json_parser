@@ -12,26 +12,26 @@
 
 
 TEST_CASE("\nBasic Test\n", "[basic]") {
-	
+
 	Json_Value json = parse(load_json_from_file("json_testing.json"));
 	REQUIRE(json.type == Value_Type::OBJECT);
-	
+
 	Json_Obj_Test* obj = json.to_obj();
 	REQUIRE(obj->size() == 6);
-	
+
 	REQUIRE(json["id"].to_int() == 1);
-	
+
 	Json_Value value = json["id"];
 	value.value = 2;
-	
+
 	json["id"] = 3;
-	
+
 	REQUIRE(json["id"].to_int() == 3);
 	REQUIRE(json["id"].type == Value_Type::NUMBER);
-	
+
 	Json_Array* arr = json["world"].to_array();
 	REQUIRE(arr->size() == 3);
-	
+
 	REQUIRE(json["can_bool"].type == Value_Type::BOOL);
 	REQUIRE(json["can_bool"].to_bool() == false);
 
@@ -95,138 +95,154 @@ TEST_CASE("ARRAY TESTS") {
 
 		json_free(json);
 	}
-//
-//	SECTION("Array of numbers") {
-//		Json_Value json = parse(std::string{R"(
-//			[ 1, 2, 3]
-//		)"});
-//
-//		Json_Array array = json.to_array();
-//
-//		REQUIRE(array.size() == 3);
-//		REQUIRE(array[0].type == Value_Type::NUMBER);
-//	}
+
+	SECTION("Array of numbers") {
+		Json_Value json = parse(std::string{R"(
+			[ 1, 2, 3]
+		)"});
+
+		REQUIRE(json.to_array()->size() == 3);
+		REQUIRE((*json.to_array())[0].type == Value_Type::NUMBER);
+	}
 }
+
+TEST_CASE("OBJECT IN ARRAY") {
+	Json_Value json = parse(std::string{R"(
+		{
+			"foo": [
+				{
+					"blah": "object_1"
+				}
+			]
+		}
+	)"});
+	REQUIRE(json.to_obj()->size() == 1);
+	REQUIRE(json["foo"].type == Value_Type::ARRAY);
+	REQUIRE(json["foo"][0].type == Value_Type::OBJECT);
+	REQUIRE(json["foo"][0]["blah"].type == Value_Type::STRING);
+	REQUIRE(json["foo"][0]["blah"].to_str() == "object_1");
+
+	json_free(json);
+}
+
+/*
+ Json_Value json = parse(std::string{R"(
+	 {
+		 "name": "json_test_ship",
+		 "tiles": [
+			 {
+				 "x": 0,
+				 "y": 0,
+				 "room": 0,
+				 "walls": {
+					 "left": false,
+					 "right": true,
+					 "top": false,
+					 "bot": true
+				 }
+			 },
+			 {
+				 "x": 1,
+				 "y": 0,
+				 "room": 0,
+				 "walls": {
+					 "left": false,
+					 "right": true,
+					 "top": false,
+					 "bot": true
+				 }
+			 },
+		 ],
+		 "rooms": [
+			 {
+				 "id": 0,
+				 "has_system": true,
+				 "system_name": "shields"
+			 }
+		 ]
+	 }
+ )"});
+*/
+TEST_CASE("COMPLEX") {
+	Json_Value json = parse(std::string{R"(
+		{
+			"name": "json_test_ship",
+			"tiles": [
+				{
+					"x": 0,
+					"y": 0,
+					"room": 0,
+					"walls": {
+						"left": false,
+						"right": true,
+						"top": false,
+						"bot": true
+					}
+				},
+				{
+					"x": 1,
+					"y": 0,
+					"room": 0,
+					"walls": {
+						"left": false,
+						"right": true,
+						"top": false,
+						"bot": true
+					}
+				},
+			],
+			"rooms": [
+				{
+					"id": 0,
+					"has_system": true,
+					"system_name": "shields"
+				}
+			]
+		}
+	)"});
+
+	REQUIRE(json.to_obj()->size() == 3);
+	REQUIRE(json["tiles"].to_array()->size() == 2);
+	REQUIRE(json["tiles"][0]["walls"].to_obj()->size() == 4);
+
+	json_free(json);
+}
+
+TEST_CASE("STRING") {
+	SECTION("lonely_string") {
+		Json_Value json = parse(std::string{R"("abc")"});
+		REQUIRE(json.type == Value_Type::STRING);
+		REQUIRE(json.to_str() == "abc");
+		json_free(json);
+	}
+}
+
+TEST_CASE("Expected Errors") {
+	SECTION("Invalid Starting Token") {
+		Json_Value json = parse(":", false);
+		REQUIRE(json.type == Value_Type::ERROR);
+
+		json_free(json);
+	}
+
+	SECTION("Unterminated String") {
+		Json_Value json = parse(R"("hello)", false);
+		REQUIRE(json.type == Value_Type::ERROR);
+
+		json_free(json);
+	}
 //
-//TEST_CASE("OBJECT IN ARRAY") {
-//	Json_Value json = parse(std::string{R"(
-//		{
-//			"object_in_arr": [
-//				{
-//					"blah": "object_1"
-//				}
-//			]
-//		}
-//	)"});
-//
-////	AST_Node* root_node = json_data.ast->root;
-//	Json_Obj* root_node = json.to_obj();
-//
-//	REQUIRE(root_node != nullptr);
-//	REQUIRE(root_node->name.compare("ROOT") == 0);
-//	REQUIRE(root_node->properties.size() == 1);
-//
-//	AST_Pair_Node* pair_node = root_node->properties[0];
-//	REQUIRE(pair_node->key.compare("object_in_arr") == 0);
-//	REQUIRE(pair_node->value_node.type == Value_Type::ARRAY);
-//
-//	auto current_array = std::get<Json_Obj*>(pair_node->value_node.value)->array;
-//	REQUIRE(current_array[0].type == Value_Type::OBJECT);
-//
-//	Json_Obj* object = std::get<Json_Obj*>(current_array[0].value);
-//	REQUIRE(object->name.compare("UNNAMED") == 0);
-//	REQUIRE(object->properties[0]->key.compare("blah") == 0);
-//	REQUIRE(object->properties[0]->value_node.type == Value_Type::STRING);
-//	REQUIRE(std::get<std::string>(object->properties[0]->value_node.value).compare("object_1") == 0);
-//
-//	json_free(json);
-//}
-//
-//TEST_CASE("COMPLEX") {
-//	Json_Value json = parse(std::string{R"(
-//		{
-//			"name": "json_test_ship",
-//			"tiles": [
-//				{
-//					"x": 0,
-//					"y": 0,
-//					"room": 0,
-//					"walls": {
-//						"left": false,
-//						"right": true,
-//						"top": false,
-//						"bot": true
-//					}
-//				},
-//				{
-//					"x": 1,
-//					"y": 0,
-//					"room": 0,
-//					"walls": {
-//						"left": false,
-//						"right": true,
-//						"top": false,
-//						"bot": true
-//					}
-//				},
-//			],
-//			"rooms": [
-//				{
-//					"id": 0,
-//					"has_system": true,
-//					"system_name": "shields"
-//				}
-//			]
-//		}
-//	)"});
-//
-//	Json_Obj* root_node = json.to_obj();
-//
-//	REQUIRE(root_node != nullptr);
-//	REQUIRE(root_node->name.compare("ROOT") == 0);
-//	REQUIRE(root_node->properties.size() == 3);
-////	REQUIRE(json_data["name"].value.as_string())
-//
-//	json_free(json);
-//}
-//
-//TEST_CASE("STRING") {
-//	SECTION("lonely_string") {
-//		Json_Value json = parse(std::string{R"("abc")"});
-//
-//		REQUIRE(json.type == Value_Type::STRING);
-////		REQUIRE(get_string(json.value).compare("abc") == 0);
-//		REQUIRE(json.to_str().compare("abc") == 0);
-//		json_free(json);
-//	}
-//}
-//
-//TEST_CASE("Expected Errors") {
-//	SECTION("Invalid Starting Token") {
-//		Json_Value json = parse(":", false);
-//		REQUIRE(json.type == Value_Type::ERROR);
-//
-//		json_free(json);
-//	}
-//
-//	SECTION("Unterminated String") {
-//		Json_Value json = parse(R"("hello)", false);
-//		REQUIRE(json.type == Value_Type::ERROR);
-//
-//		json_free(json);
-//	}
-//
-//	SECTION("Unterminated String Part 2") {
-//		Json_Value json = parse(R"(
-//			{
-//				"a": "test
-//			}
-//		)", false);
-////		REQUIRE(json.value.type == Value_Type::ERROR);
-//
-//		json_free(json);
-//	}
-//}
+	SECTION("Unterminated String Part 2") {
+		Json_Value json = parse(R"(
+			{
+				"a": "test
+			}
+		)");
+		REQUIRE(json.type == Value_Type::ERROR);
+
+		json_free(json);
+	}
+}
 //
 //
 ////TEST_CASE("SERIALIZE") {
