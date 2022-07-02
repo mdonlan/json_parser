@@ -9,6 +9,8 @@
 #include <fstream>
 #include <math.h>
 
+Parser* _parser = new Parser;
+
 void consume(Parser* parser) {
 	eat_whitespace(parser);
 	char c = parser->str[parser->index];
@@ -252,10 +254,10 @@ void add_value(Parser* parser, Json_Value value) {
 	if (parser->test_active_value.type == Value_Type::OBJECT) {
 		//Json_Obj_Test& obj = *parser->test_active_obj;
 		//obj[parser->active_name] = value;
-		(*parser->test_active_value.to_obj())[parser->active_name] = value;
+		parser->test_active_value.to_obj()[parser->active_name] = value;
 	} else if (parser->test_active_value.type == Value_Type::ARRAY) {
 		//parser->test_active_arr->push_back(value);
-		parser->test_active_value.to_array()->push_back(value);
+		parser->test_active_value.to_array().push_back(value);
 	} else {
 		assert(false);
 	}
@@ -281,7 +283,7 @@ void parse_token(Token token, Parser* parser) {
 		
 		//Json_Obj_Test& obj = *parser->test_active_obj;
 		//obj[str] = Json_Value{};
-		(*parser->test_active_value.to_obj())[str] = Json_Value{};
+		parser->test_active_value.to_obj()[str] = Json_Value{};
 		parser->active_name = str;
 	} else if (token.type == Token_Type::STRING_VALUE) {
 //		Json_Obj_Test obj = std::get<Json_Obj_Test>(parser->json_test.value);
@@ -329,10 +331,10 @@ void parse_object(Parser* parser) {
 //		(*parser->test_active_obj)[parser->active_name] = obj_value;
 		if (parser->test_active_value.type == Value_Type::OBJECT) {
 			//(*parser->test_active_obj)[parser->active_name] = obj_value;
-			(*parser->test_active_value.to_obj())[parser->active_name] = obj_value;
+			parser->test_active_value.to_obj()[parser->active_name] = obj_value;
 		} else if (parser->test_active_value.type == Value_Type::ARRAY) {
 			//parser->test_active_arr->push_back(obj_value);
-			parser->test_active_value.to_array()->push_back(obj_value);
+			parser->test_active_value.to_array().push_back(obj_value);
 		}
 	}
 	
@@ -377,7 +379,7 @@ void parse_array(Parser* parser) {
 		} else if (parser->test_active_value.type == Value_Type::OBJECT) {
 			//(*parser->test_active_obj)[parser->active_name] = arr_value;
 			//(*parser->test_active_obj)[parser->active_name] = arr_value;
-			(*parser->test_active_value.to_obj())[parser->active_name] = arr_value;
+			parser->test_active_value.to_obj()[parser->active_name] = arr_value;
 		}
 	}
 //
@@ -481,7 +483,7 @@ Json_Value parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_e
 //	Json_Value json;
 //	int token_index = 0;
 	Token current_token = tokens[parser->token_index];
-	AST_Pair_Node* current_pair_node = nullptr;
+//	AST_Pair_Node* current_pair_node = nullptr;
 	std::string err_msg;
 	
 //	Json_Value json_test;
@@ -616,6 +618,7 @@ void create_tokens(Parser* parser) {
 
 Json_Value parse(std::string str, bool print_error) {
 	Parser* parser = new Parser { .str = str };
+	_parser = parser;
 	
 	create_tokens(parser);
 	Json_Value json = parse_tokens(parser->tokens, parser, print_error);
@@ -644,8 +647,8 @@ Json_Value& Json_Value::operator[](int i) {
 	Json_Value value;
 	
 	if (this->type == Value_Type::ARRAY) {
-		Json_Array* arr = this->to_array();
-		return (*arr)[i];
+		Json_Array& arr = this->to_array();
+		return arr[i];
 //		Json_Obj_Test* obj = this->to_obj();
 //		value = (*obj)[key];
 //
@@ -666,26 +669,44 @@ Json_Value& Json_Value::operator[](int i) {
 // if there is no matching key then return an empty value
 Json_Value& Json_Value::operator[](std::string key) {
 	
-	Json_Value value;
+//	Json_Value value;
 	
 	if (this->type == Value_Type::OBJECT) {
-		Json_Obj_Test* obj = this->to_obj();
-		value = (*obj)[key];
+		Json_Obj_Test& obj = this->to_obj();
+//		value = obj[key];
 		
-		Json_Value& test = obj->at(key);
+		Json_Value& test = obj.at(key);
 		return test;
-//		auto test = obj->find(key);
-//		return &test->second;
+	} else if (this->type == Value_Type::NULL_TYPE) {
+		// should we default initialize json_value to object instead of null_type??
 		
-		int a = 0;
-		(void)a;
+//		Json_Value* value = new Json_Value;
+//		value->type = Value_Type::NUMBER;
+//		value->value = 7;
+//		return *value;
+		
+		Json_Value value;
+		this->type = Value_Type::OBJECT;
+		this->value = new Json_Obj_Test{};
+//
+		Json_Obj_Test& obj = this->to_obj();
+		obj[key] = Json_Value{};
+		
+		return this->to_obj()[key];
+//
+//		_parser->current_json = value;
+//		return _parser->current_json[key];
+//		return test_value;
+		
+//		return value;
+		
 	} else {
 		assert(false);
 	}
 
-	int a = 0;
-	(void)a;
-	return value;
+//	int a = 0;
+//	(void)a;
+//	return value;
 //	// if we are trying to set a value in a Json object that was just created
 //	// it will be of type NULL_TYPE, we need to convert it to an OBJECT type
 //	if (this->type == Value_Type::NULL_TYPE) {
@@ -872,31 +893,42 @@ void json_err(const std::string& err_msg, bool print_error) {
 //
 const std::string Json_Value::to_str() { return std::get<std::string>(this->value); }
 float Json_Value::to_float() { return std::get<float>(this->value); }
-int Json_Value::to_int() { return (int)std::get<float>(this->value); }
+int Json_Value::to_int() {
+	
+//	return (int)std::get<float>(this->value);
+	float* result = std::get_if<float>(&this->value);
+	if (result) return *result;
+	else {
+		int a = 0;
+		(void)a;
+		assert(false);
+	}
+	return 0;
+}
 //std::vector<Json_Value> Json_Value::to_array() {
 //	Json_Obj* array_node = std::get<Json_Obj*>(this->value);
 //	return array_node->array;
 //}
-Json_Array* Json_Value::to_array() { return std::get<Json_Array*>(this->value); }
-Json_Obj_Test* Json_Value::to_obj() { return std::get<Json_Obj_Test*>(this->value); }
+Json_Array& Json_Value::to_array() { return (*std::get<Json_Array*>(this->value)); }
+Json_Obj_Test& Json_Value::to_obj() { return (*std::get<Json_Obj_Test*>(this->value)); }
 bool Json_Value::to_bool() { return std::get<bool>(this->value); }
 
 
 void json_free(Json_Value& value) {
 	if (value.type == Value_Type::OBJECT) {
-		for (auto& it : (*value.to_obj())) {
+		for (auto& it : value.to_obj()) {
 			if (it.second.type == Value_Type::OBJECT) {
 				json_free(it.second);
 			}
 		}
-		delete value.to_obj();
+		delete &value.to_obj();
 	} else if (value.type == Value_Type::ARRAY) {
-		for (Json_Value& it : (*value.to_array())) {
+		for (Json_Value& it : value.to_array()) {
 			if (it.type == Value_Type::OBJECT) {
 				json_free(it);
 			}
 		}
-		delete value.to_array();
+		delete &value.to_array();
 	}
 //	if (value.type == Value_Type::OBJECT) {
 //		for (auto property : value.to_obj()->properties) {
@@ -918,11 +950,11 @@ void json_free(Json_Value& value) {
 }
 
 void Json_Value::operator=(int num) {
-	std::string str = std::to_string(num);
-	Json_Value json = parse(str);
+//	std::string str = std::to_string(num);
+//	Json_Value json = parse(str);
 	
 	this->type = Value_Type::NUMBER;
-	this->value = json.value;
+	this->value = (float)num;
 }
 
 void Json_Value::operator=(std::string str) {

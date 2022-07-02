@@ -111,8 +111,8 @@ struct Json_Value {
 	const std::string to_str();
 	float to_float();
 	int to_int();
-	Json_Array* to_array();
-	Json_Obj_Test* to_obj();
+	Json_Array& to_array();
+	Json_Obj_Test& to_obj();
 	bool to_bool();
 };
 
@@ -141,7 +141,12 @@ struct Parser {
 	Json_Value prev_active_value;
 	std::vector<Json_Value> parents;
 	bool finished = false; // is the parser finished parsing
+	
+	Json_Value current_json; // use for references
+	
 };
+
+extern Parser* _parser;
 
 enum class AST_Node_Type {
 	OBJECT,
