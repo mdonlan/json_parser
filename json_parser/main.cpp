@@ -9,9 +9,6 @@
 #define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
 #include "Tests.h"
-//#include <type_traits>
-//#include <variant>
-//#define DEVMODE 1
 
 constexpr bool DEV_MODE = true;
 

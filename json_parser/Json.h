@@ -38,7 +38,6 @@ struct Token {
 struct Json_Obj;
 struct Json_Value;
 typedef std::vector<Json_Value> Json_Array;
-//struct Pair;
 
 enum class Value_Type {
 	NUMBER,
@@ -52,57 +51,9 @@ enum class Value_Type {
 };
 
 typedef std::map<std::string, Json_Value> Json_Obj_Test;
-typedef std::pair<std::string, Json_Value> Pair;
-//
-//using variant_t = std::variant<std::monostate, std::string, int, float, bool, Json_Obj*, Json_Array*, Json_Obj_Test*>;
-//
-//struct Variant {
-//	variant_t  var_;
-//
-//	explicit Variant (variant_t var) : var_(std::move(var)){}
-//
-//	Variant(int i){var_ = i;};
-//	Variant(std::string str){var_ = str;};
-//	Variant(char* ch){var_ = ch;};
-//	Variant(Json_Obj_Test* obj){var_ = obj;};
-//	Variant(Json_Array* arr){var_ = arr;};
-//
-//	enum TypeId {
-//		EMPTY = 0,
-//		STRING = 1,
-//		INT32 = 2,
-////		INT32 = 3,
-////		UINT32 = 4,
-////		INT64 = 5,
-////		UINT64 = 6,
-////		FLOAT = 7,
-////		DOUBLE = 8,
-////		CHAR = 9,
-////		UCHAR = 10,
-////		DOUBLEVECTOR = 11
-//	};
-//
-//	TypeId type () const { return (Variant::TypeId) var_.index(); }
-//
-////	template <typename VariantType>
-////	VariantType get () const {
-////		return std::get<VariantType>(var_);
-////	}
-//
-//	template <typename T>
-//	operator T () const {
-//		return std::visit([](auto const & val) {
-//			if constexpr (std::is_convertible_v<decltype(val), T>)
-//			  return T(val);
-//			else
-//			  {throw std::bad_variant_access{}; return T{}; }
-//		}, var_);
-//	}
-//};
 
 struct Json_Value {
 	Value_Type type = Value_Type::NULL_TYPE;
-//	Variant value = 0;
 	std::variant<std::monostate, std::string, int, float, bool, Json_Obj*, Json_Array*, Json_Obj_Test*> value = 0;
 	Json_Value& operator[](std::string key);
 	Json_Value& operator[](int i);
@@ -116,8 +67,6 @@ struct Json_Value {
 	bool to_bool();
 };
 
-
-
 struct Parser {
 	unsigned int index = 0;
 	bool eof = false;
@@ -126,79 +75,18 @@ struct Parser {
 	std::string cache; // chars left that were not matching anything
 	Json_Obj* current_obj = nullptr;
 	Json_Array* current_arr = nullptr;
-//	Pair* current_pair = nullptr;
-//	Json_Obj* root = nullptr;
-//	Json_Value json;
-	//Json_Obj_Test* test_active_obj = nullptr;
 	Json_Value json_test;
 	Json_Value test_active_value;
-	//Json_Array* test_active_arr = nullptr;
 	std::string active_name; // the last name set
 	unsigned int token_index = 0;
 	bool has_set_root = false;
-//	Json_Array* prev_active_arr = nullptr;
-//	Json_Obj_Test* prev_active_obj = nullptr;
 	Json_Value prev_active_value;
 	std::vector<Json_Value> parents;
 	bool finished = false; // is the parser finished parsing
-	
 	Json_Value current_json; // use for references
-	
 };
 
 extern Parser* _parser;
-
-enum class AST_Node_Type {
-	OBJECT,
-	ARRAY
-};
-
-
-
-struct AST_Pair_Node;
-
-struct Json_Obj {
-	AST_Node_Type type;
-	std::string name;
-	std::vector<AST_Pair_Node*> properties;
-	std::vector<Json_Value> array;
-//	std::unordered_map<std::string, Json_Value> props;
-	Json_Obj* parent;
-};
-
-
-//struct Pair {
-//	std::string key;
-//	Json_Value value;
-//};
-
-struct AST_Pair_Node {
-	std::string key;
-	Json_Value value_node;
-	Json_Obj* parent;
-};
-
-
-
-
-///* new stuff */
-//struct m_json_value;
-//typedef std::unordered_map<std::string, m_json_value> m_json_obj;
-//struct m_json_value {
-//	Value_Type type = Value_Type::NULL_TYPE;
-//	std::variant<std::string, int, float, bool, m_json_obj, Json_Array*> value = 0;
-////	Json_Value& operator[](std::string key);
-////	void operator=(std::string str);
-////	void operator=(int num);
-////	const std::string to_str();
-////	float to_float();
-////	int to_int();
-////	std::vector<Json_Value> to_array();
-//	m_json_obj to_obj() {return std::get<m_json_obj>(this->value);};
-////	bool to_bool();
-//};
-//void m_parse_tokens(std::vector<Token>& tokens);
-///* end new stuff */
 
 void create_tokens(Parser* parser);
 Json_Value parse(std::string str, bool print_error = true); // print_error -- can turn off for dev/testing purposes w/ expected errors

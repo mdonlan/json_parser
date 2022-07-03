@@ -352,43 +352,27 @@ TEST_CASE("Large Files") {
 
 TEST_CASE("Write/Edit Json") {
 	SECTION("Write Numbers") {
-		Json_Value json; // setup json without parse();
-
-//		REQUIRE(json.value.type == Value_Type::OBJECT);
-//		REQUIRE(json.value.to_obj()->properties.size() == 0);
-
-		/*
-		 SHOULD I JUST MAKE ALL JSON_VALUE's OBJECTS by defaut???
-		 */
+		Json_Value json;
 		json["foo"] = 3;
 		REQUIRE(json["foo"].to_int() == 3);
-
-//		REQUIRE(json.type == Value_Type::OBJECT);
-//		REQUIRE(json.to_obj().size() == 1);
-//
-//		Json_Value value = json["foo"];
-//
-//		REQUIRE(value.type == Value_Type::NUMBER);
-//		REQUIRE(value.to_int() == 3);
+		REQUIRE(json.type == Value_Type::OBJECT);
+		REQUIRE(json.to_obj().size() == 1);
 	}
 
-//	SECTION("Write Strings") {
-//		Json_Value json = parse("{}");
-//
-//		REQUIRE(json.type == Value_Type::OBJECT);
-//		REQUIRE(json.to_obj().size() == 0);
-//
-//		json["foo"] = "hello world";
-//		REQUIRE(json["foo"].to_str().compare("hello world") == 0);
-//
-//		REQUIRE(json.type == Value_Type::OBJECT);
-//		REQUIRE(json.to_obj().size() == 1);
-//
-//		Json_Value value = json["foo"];
-//
-//		REQUIRE(value.type == Value_Type::STRING);
-//		REQUIRE(json["foo"].to_str().compare("hello world") == 0);
-//	}
+	SECTION("Write Strings") {
+		Json_Value json;
+
+		json["foo"] = "hello world";
+		REQUIRE(json["foo"].to_str() == "hello world");
+
+		REQUIRE(json.type == Value_Type::OBJECT);
+		REQUIRE(json.to_obj().size() == 1);
+
+		Json_Value value = json["foo"];
+
+		REQUIRE(value.type == Value_Type::STRING);
+		REQUIRE(json["foo"].to_str().compare("hello world") == 0);
+	}
 
 //	SECTION("Write Nested Values") {
 //		Json_Value json = parse("{}");
