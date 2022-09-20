@@ -1,17 +1,15 @@
-### m_json
-
-An easy to use JSON library written in c++. m_json can parse JSON as well as write it using simple intuitive syntax.
+A JSON parsing library written in c++.
 
 Note: Work in Progress!
 
-###Features
+### Features
 * Parse JSON from a file or a string
 * Write JSON to existing JSON or save to a string/file
 * Use simple, intuitve syntax to read and write your JSON
 *
 
 
-###Example
+### Example
 
 example_file.json
 ```
@@ -30,8 +28,7 @@ example_file.json
 
 load the JSON from file
 ```
-std::string str = load_json_from_file("example_test.json");
-Json json = parse(str);
+Json_Value json = parse(load_json_from_file("example_test.json"));
 ```
 
 use the JSON values 
@@ -39,5 +36,5 @@ use the JSON values
 int user_id = json["userId"].to_int(); // user_id => 4
 std::string title = json["title"].to_str(); // title => "this is a great title"
 
-std::string arr_val = json["test_array"].to_array()[1]; // arr_val => "foo"
+std::string arr_val = json["test_array"].to_array()[1].to_string(); // arr_val => "foo"
 ```

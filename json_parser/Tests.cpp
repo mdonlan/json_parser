@@ -207,65 +207,108 @@ TEST_CASE("Expected Errors") {
 	}
 }
 
+struct Person {
+	std::string name;
+	int age;
+};
+
+Json_Value to_json(Person person) {
+	Json_Value value;
+	value["name"] = person.name;
+	value["age"] = person.age;
+	return value;
+}
+
+Person from_json(Json_Value value) {
+	Person person;
+	person.name = value["name"].to_str();
+	person.age = value["age"].to_int();
+	return person;
+}
+
 
 TEST_CASE("SERIALIZE") {
-	// test serialize of the ship object
-	Json_Value json = parse(load_json_from_file("ship_test.json"));
+	SECTION("SHIP") {
+		// test serialize of the ship object
+		Json_Value json = parse(load_json_from_file("ship_test.json"));
 
-	struct Tile {
-		int x;
-		int y;
-		int room;
-		std::map<std::string, bool> walls;
-	};
+		struct Tile {
+			int x;
+			int y;
+			int room;
+			std::map<std::string, bool> walls;
+		};
 
-	struct Room {
-		int id;
-		bool has_system;
-		std::string system_name;
-	};
+		struct Room {
+			int id;
+			bool has_system;
+			std::string system_name;
+		};
 
-	struct Ship {
-		std::string name;
-		std::vector<Tile> tiles;
-		std::vector<Room> rooms;
-	};
+		struct Ship {
+			std::string name;
+			std::vector<Tile> tiles;
+			std::vector<Room> rooms;
+		};
 
-	Ship ship;
-	ship.name = json["name"].to_str();
+		Ship ship;
+		ship.name = json["name"].to_str();
 
-	Json_Array& tiles_arr = json["tiles"].to_array();
-	for (Json_Value tile_data : tiles_arr) {
-		Tile tile;
-		tile.x = tile_data["x"].to_int();
-		tile.y = tile_data["y"].to_int();
-		tile.room = tile_data["room"].to_int();
+		Json_Array& tiles_arr = json["tiles"].to_array();
+		for (Json_Value tile_data : tiles_arr) {
+			Tile tile;
+			tile.x = tile_data["x"].to_int();
+			tile.y = tile_data["y"].to_int();
+			tile.room = tile_data["room"].to_int();
 
-		Json_Obj_Test& walls_obj = tile_data["walls"].to_obj();
-		for (auto wall_data : walls_obj) {
-			tile.walls[wall_data.first] = wall_data.second.to_bool();
+			Json_Obj_Test& walls_obj = tile_data["walls"].to_obj();
+			for (auto wall_data : walls_obj) {
+				tile.walls[wall_data.first] = wall_data.second.to_bool();
+			}
+
+			ship.tiles.push_back(tile);
 		}
 
-		ship.tiles.push_back(tile);
+		auto rooms_arr = json["rooms"].to_array();
+		for (auto room_data : rooms_arr) {
+			Room room;
+			room.id = room_data["id"].to_int();
+			room.has_system = room_data["has_system"].to_bool();
+			room.system_name = room_data["system_name"].to_str();
+
+			ship.rooms.push_back(room);
+		}
+
+		REQUIRE(ship.name.compare("json_test_ship") == 0);
+		REQUIRE(ship.tiles.size() == 2);
+		REQUIRE(ship.tiles[0].walls.size() == 4);
+		REQUIRE(ship.rooms.size() == 1);
+		REQUIRE(ship.rooms[0].id == 0);
+
+		json_free(json);
 	}
-
-	auto rooms_arr = json["rooms"].to_array();
-	for (auto room_data : rooms_arr) {
-		Room room;
-		room.id = room_data["id"].to_int();
-		room.has_system = room_data["has_system"].to_bool();
-		room.system_name = room_data["system_name"].to_str();
-
-		ship.rooms.push_back(room);
+	
+	
+	
+	
+	SECTION("Basic") {
+		/*
+			use structs/functions above
+		*/
+		
+		Person person{"Jim Smith", 21};
+		Json_Value person_json = to_json(person);
+		
+		REQUIRE(person_json.type == Value_Type::OBJECT);
+		REQUIRE(person_json.to_obj().size() == 2);
+		REQUIRE(person_json["name"].to_str() == "Jim Smith");
+		REQUIRE(person_json["age"].to_int() == 21);
+		
+		Person person_from_json = from_json(person_json);
+		
+		REQUIRE(person_from_json.name == "Jim Smith");
+		REQUIRE(person_from_json.age == 21);
 	}
-
-	REQUIRE(ship.name.compare("json_test_ship") == 0);
-	REQUIRE(ship.tiles.size() == 2);
-	REQUIRE(ship.tiles[0].walls.size() == 4);
-	REQUIRE(ship.rooms.size() == 1);
-	REQUIRE(ship.rooms[0].id == 0);
-
-	json_free(json);
 }
 //
 TEST_CASE("NUMBERS") {

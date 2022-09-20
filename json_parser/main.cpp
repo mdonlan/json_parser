@@ -9,8 +9,10 @@
 #define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
 #include "Tests.h"
+#include <string>
 
 constexpr bool DEV_MODE = true;
+
 
 int main(int argc, const char * argv[]) {
 	if (DEV_MODE) {

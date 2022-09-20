@@ -408,8 +408,14 @@ Json_Value& Json_Value::operator[](std::string key) {
 	if (this->type == Value_Type::OBJECT) {
 		Json_Obj_Test& obj = this->to_obj();
 		
-		Json_Value& test = obj.at(key);
-		return test;
+		if (obj.contains(key)) {
+			return obj.at(key); // if key exists return ref
+		} else {
+			// if no key, create it and return ref
+			Json_Value value;
+			obj.insert({key, value});
+			return obj.at(key);
+		}
 	} else if (this->type == Value_Type::NULL_TYPE) {
 		Json_Value value;
 		this->type = Value_Type::OBJECT;
@@ -421,6 +427,7 @@ Json_Value& Json_Value::operator[](std::string key) {
 	} else {
 		assert(false);
 	}
+	assert(false);
 }
 
 float get_number(Json_Value value_node) { return std::get<float>(value_node.value); }
@@ -599,13 +606,13 @@ void Json_Value::operator=(std::string str) {
 	this->value = json.value;
 }
 
-void print_value(Json_Value value) {
-	if (value.type == Value_Type::STRING) {
-		printf("%s\n", value.to_str().c_str());
-	} else if (value.type == Value_Type::NUMBER) {
-		printf("%d\n", value.to_int());
-	}
-}
+//void print_value(Json_Value value) {
+//	if (value.type == Value_Type::STRING) {
+//		printf("%s\n", value.to_str().c_str());
+//	} else if (value.type == Value_Type::NUMBER) {
+//		printf("%d\n", value.to_int());
+//	}
+//}
 
 void write_json(std::string json_str, std::string filename) {
 	std::ofstream file(filename);
@@ -616,10 +623,4 @@ void write_json(std::string json_str, std::string filename) {
 	  else {
 		  printf("Unable to open file.\n");
 	  }
-}
-
-void do_indent(std::string& str, int indent) {
-	for (int i = 0; i < indent; i++) {
-		str += '\t';
-	}
 }
