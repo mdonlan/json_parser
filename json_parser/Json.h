@@ -73,17 +73,13 @@ struct Parser {
 	std::string str;
 	std::vector<Token> tokens;
 	std::string cache; // chars left that were not matching anything
-	Json_Obj* current_obj = nullptr;
-	Json_Array* current_arr = nullptr;
-	Json_Value json_test;
-	Json_Value test_active_value;
+	Json_Value root_value;
+	Json_Value active_value;
 	std::string active_name; // the last name set
 	unsigned int token_index = 0;
 	bool has_set_root = false;
-	Json_Value prev_active_value;
 	std::vector<Json_Value> parents;
 	bool finished = false; // is the parser finished parsing
-	Json_Value current_json; // use for references
 };
 
 extern Parser* _parser;
@@ -98,14 +94,12 @@ const std::string load_json_from_file(const std::string& file_name);
 bool is_valid_syntax(std::vector<Token>& tokens, int token_index, std::string& err_msg, bool print_error);
 void json_err(const std::string& err_msg, bool print_error);
 void json_free(Json_Value& value);
-void print_value(Json_Value value);
 void write_json(std::string json_str, std::string filename);
 std::string json_to_string(const Json_Value& json);
 
 // new parsing stuff...
 void set_root(Parser* parser);
 void parse_array(Parser* parser);
-
 void parse_token(Token token, Parser* parser);
 void parse_object(Parser* parser);
 void add_value(Parser* parser, Json_Value value);

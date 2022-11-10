@@ -185,7 +185,7 @@ void set_root(Parser* parser) {
 			Json_Value value;
 			value.type = Value_Type::STRING;
 			value.value = std::get<std::string>(token.value);
-			parser->json_test = value;
+			parser->root_value = value;
 			parser->has_set_root = true;
 			break;
 		}
@@ -193,7 +193,7 @@ void set_root(Parser* parser) {
 			Json_Value value;
 			value.type = Value_Type::NUMBER;
 			value.value = std::get<float>(token.value);
-			parser->json_test = value;
+			parser->root_value = value;
 			parser->has_set_root = true;
 			break;
 		}
@@ -201,7 +201,7 @@ void set_root(Parser* parser) {
 			Json_Value value;
 			value.type = Value_Type::BOOL;
 			value.value = std::get<bool>(token.value);
-			parser->json_test = value;
+			parser->root_value = value;
 			parser->has_set_root = true;
 			break;
 		}
@@ -217,17 +217,17 @@ void set_root(Parser* parser) {
 			Json_Value value;
 			value.type = Value_Type::ERROR;
 			value.value = "json error: invalid root node";
-			parser->json_test = value;
+			parser->root_value = value;
 			parser->has_set_root = true;
 		}
 	}
 }
 
 void add_value(Parser* parser, Json_Value value) {
-	if (parser->test_active_value.type == Value_Type::OBJECT) {
-		parser->test_active_value.to_obj()[parser->active_name] = value;
-	} else if (parser->test_active_value.type == Value_Type::ARRAY) {
-		parser->test_active_value.to_array().push_back(value);
+	if (parser->active_value.type == Value_Type::OBJECT) {
+		parser->active_value.to_obj()[parser->active_name] = value;
+	} else if (parser->active_value.type == Value_Type::ARRAY) {
+		parser->active_value.to_array().push_back(value);
 	} else {
 		assert(false);
 	}
@@ -240,7 +240,7 @@ void parse_token(Token token, Parser* parser) {
 		Json_Value error_value;
 		error_value.type = Value_Type::ERROR;
 		error_value.value = err_msg;
-		parser->json_test = error_value;
+		parser->root_value = error_value;
 		parser->finished = true;
 	}
 	
@@ -248,7 +248,7 @@ void parse_token(Token token, Parser* parser) {
 		set_root(parser);
 	} else if (token.type == Token_Type::NAME) {
 		std::string str = std::get<std::string>(token.value);
-		parser->test_active_value.to_obj()[str] = Json_Value{};
+		parser->active_value.to_obj()[str] = Json_Value{};
 		parser->active_name = str;
 	} else if (token.type == Token_Type::STRING_VALUE) {
 		Json_Value string_value;
@@ -288,18 +288,18 @@ void parse_object(Parser* parser) {
 	obj_value.value = new Json_Obj_Test{};
 	
 	if (!parser->has_set_root) {
-		parser->json_test = obj_value;
+		parser->root_value = obj_value;
 		parser->has_set_root = true;
 	} else {
-		if (parser->test_active_value.type == Value_Type::OBJECT) {
-			parser->test_active_value.to_obj()[parser->active_name] = obj_value;
-		} else if (parser->test_active_value.type == Value_Type::ARRAY) {
-			parser->test_active_value.to_array().push_back(obj_value);
+		if (parser->active_value.type == Value_Type::OBJECT) {
+			parser->active_value.to_obj()[parser->active_name] = obj_value;
+		} else if (parser->active_value.type == Value_Type::ARRAY) {
+			parser->active_value.to_array().push_back(obj_value);
 		}
 	}
 	
-	parser->parents.push_back(parser->test_active_value);
-	parser->test_active_value = obj_value;
+	parser->parents.push_back(parser->active_value);
+	parser->active_value = obj_value;
 
 	parser->token_index++;
 	Token current_token = parser->tokens[parser->token_index];
@@ -310,7 +310,7 @@ void parse_object(Parser* parser) {
 		current_token = parser->tokens[parser->token_index];
 	}
 	
-	parser->test_active_value = parser->parents.back();
+	parser->active_value = parser->parents.back();
 	parser->parents.pop_back();
 }
 
@@ -320,18 +320,18 @@ void parse_array(Parser* parser) {
 	arr_value.value = new Json_Array{};
 	
 	if (!parser->has_set_root) {
-		parser->json_test = arr_value;
+		parser->root_value = arr_value;
 		parser->has_set_root = true;
 	} else {
-		if (parser->test_active_value.type == Value_Type::ARRAY) {
+		if (parser->active_value.type == Value_Type::ARRAY) {
 			add_value(parser, arr_value);
-		} else if (parser->test_active_value.type == Value_Type::OBJECT) {
-			parser->test_active_value.to_obj()[parser->active_name] = arr_value;
+		} else if (parser->active_value.type == Value_Type::OBJECT) {
+			parser->active_value.to_obj()[parser->active_name] = arr_value;
 		}
 	}
 
-	parser->parents.push_back(parser->test_active_value);
-	parser->test_active_value = arr_value;
+	parser->parents.push_back(parser->active_value);
+	parser->active_value = arr_value;
 	
 	parser->token_index++;
 	Token current_token = parser->tokens[parser->token_index];
@@ -342,9 +342,9 @@ void parse_array(Parser* parser) {
 	}
 	
 	if (parser->parents.size() > 0) {
-		parser->test_active_value = parser->parents[parser->parents.size() - 1];
+		parser->active_value = parser->parents[parser->parents.size() - 1];
 	} else {
-		parser->test_active_value = Json_Value{};
+		parser->active_value = Json_Value{};
 	}
 }
 
@@ -357,7 +357,7 @@ Json_Value parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_e
 		if (parser->token_index > parser->tokens.size() - 1) continue;
 		current_token = parser->tokens[parser->token_index];
 	}
-	return parser->json_test;
+	return parser->root_value;
 }
 
 void create_tokens(Parser* parser) {
@@ -605,14 +605,6 @@ void Json_Value::operator=(std::string str) {
 	this->type = Value_Type::STRING;
 	this->value = json.value;
 }
-
-//void print_value(Json_Value value) {
-//	if (value.type == Value_Type::STRING) {
-//		printf("%s\n", value.to_str().c_str());
-//	} else if (value.type == Value_Type::NUMBER) {
-//		printf("%d\n", value.to_int());
-//	}
-//}
 
 void write_json(std::string json_str, std::string filename) {
 	std::ofstream file(filename);
