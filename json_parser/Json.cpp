@@ -125,8 +125,13 @@ void consume(Parser* parser) {
 		
 		// check if number is negative
 		bool is_neg = false;
-		char prev_char = peek(parser, parser->index - 1);
-		if (prev_char == '-') is_neg = true;
+		if (parser->index == 0) {
+			is_neg = false;
+		} else {
+			char prev_char = peek(parser, parser->index - 1);
+			if (prev_char == '-') is_neg = true;
+		}
+		
 		
 		while (!found_end_of_number) {
 			char pc = peek(parser, p_index);
@@ -382,6 +387,7 @@ const std::string load_json_from_file(const std::string& file_name) {
 	std::string json_test_str;
 	if (!json_test_file.is_open()) {
 		printf("ERROR - Failed to open file test_json.json\n");
+		assert(false);
 	}
 	json_test_str.assign((std::istreambuf_iterator<char>(json_test_file)), (std::istreambuf_iterator<char>()));
 
@@ -615,4 +621,74 @@ void write_json(std::string json_str, std::string filename) {
 	  else {
 		  printf("Unable to open file.\n");
 	  }
+}
+
+std::string json_to_string(const Json_Value& json) {
+	Json_Value current_value = json;
+	std::string result = get_string_from_value(current_value, 0);
+	printf("%s\n", result.c_str());
+	return result;
+}
+
+void do_indent(std::string& str, int indent) {
+	for (int i = 0; i < indent; i++) {
+		str += '\t';
+	}
+}
+
+std::string get_string_from_value(Json_Value value, int indent) {
+	std::string str;
+	if (value.type == Value_Type::OBJECT) {
+		indent++;
+		str += "{\n";
+		Json_Obj_Test& obj = value.to_obj();
+		int count = 0;
+		for (auto& prop : obj) {
+			do_indent(str, indent);
+			str += "\"";
+			str += prop.first;
+			str += "\"";
+			str += ": ";
+			str += get_string_from_value(prop.second, indent);
+			
+			if (count < obj.size() - 1) {
+				str += ",\n";
+			}
+			count++;
+		}
+		indent--;
+		str += "\n";
+		do_indent(str, indent);
+		str += '}';
+	} else if (value.type == Value_Type::STRING) {
+		str += "\"";
+		str += value.to_str();
+		str += "\"";
+	} else if (value.type == Value_Type::NUMBER) {
+		if (value.to_float() == ceil(value.to_float())) {
+			str += std::to_string(value.to_int());
+		} else {
+			str += std::to_string(value.to_float());
+		}
+	} else if (value.type == Value_Type::ARRAY) {
+		str += "[ ";
+		Json_Array array = value.to_array();
+		for (int i = 0; i < array.size(); i++) {
+			str += get_string_from_value(array[i], indent);
+			if (i < array.size() - 1) {
+				str += ", ";
+			}
+		}
+		str += " ]";
+	} else if (value.type == Value_Type::BOOL) {
+		if (value.to_bool() == false) {
+			str += "false";
+		} else {
+			str += "true";
+		}
+	} else {
+		assert(false);
+	}
+	
+	return str;
 }

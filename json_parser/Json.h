@@ -96,6 +96,8 @@ void json_err(const std::string& err_msg, bool print_error);
 void json_free(Json_Value& value);
 void write_json(std::string json_str, std::string filename);
 std::string json_to_string(const Json_Value& json);
+void do_indent(std::string& str, int indent);
+std::string get_string_from_value(Json_Value value, int indent);
 
 // new parsing stuff...
 void set_root(Parser* parser);

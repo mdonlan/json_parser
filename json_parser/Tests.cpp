@@ -13,7 +13,7 @@
 
 TEST_CASE("\nBasic Test\n", "[basic]") {
 
-	Json_Value json = parse(load_json_from_file("json_testing.json"));
+	Json_Value json = parse(load_json_from_file("test_files/json_testing.json"));
 	REQUIRE(json.type == Value_Type::OBJECT);
 
 	Json_Obj_Test& obj = json.to_obj();
@@ -230,7 +230,7 @@ Person from_json(Json_Value value) {
 TEST_CASE("SERIALIZE") {
 	SECTION("SHIP") {
 		// test serialize of the ship object
-		Json_Value json = parse(load_json_from_file("ship_test.json"));
+		Json_Value json = parse(load_json_from_file("test_files/ship_test.json"));
 
 		struct Tile {
 			int x;
@@ -365,7 +365,7 @@ TEST_CASE("BOOLS") {
 
 TEST_CASE("Large Files") {
 	SECTION("Parse Large File") {
-		Json_Value json = parse(load_json_from_file("large_test_file_2.json"));
+		Json_Value json = parse(load_json_from_file("./test_files/large_test_file_2.json"));
 		json_free(json);
 	}
 
@@ -437,43 +437,43 @@ TEST_CASE("Write/Edit Json") {
 
 }
 
-//TEST_CASE("FILE I/O") {
-//	SECTION("Write out to file") {
-////		Json_Value json = parse(std::string{R"(
-////			{
-////				"test": "blah",
-////				"foo": {
-////					"hello": 1,
-////					"world": "yes"
-////				},
-////				"test_arr": [ 1, 2, 3 ],
-////				"test_arr_of_objs": [
-////					{
-////						"a": 1,
-////						"b": 2,
-////						"c": [ 1, 2, 3]
-////					},
-////					  {
-////						  "a": 3,
-////						  "b": 4,
-////						"c": [ 1, 2, 3]
-////					  },
-////					 {
-////						 "a": 5,
-////						 "b": 6,
-////					"c": [ 1, 2, 3]
-////					 },
-////				],
-////				"test_bool": false
-////			}
-////		)"});
+TEST_CASE("FILE I/O") {
+	SECTION("Write out to file") {
+		Json_Value json = parse(std::string{R"(
+			{
+				"test": "blah",
+				"foo": {
+					"hello": 1,
+					"world": "yes"
+				},
+				"test_arr": [ 1, 2, 3 ],
+				"test_arr_of_objs": [
+					{
+						"a": 1,
+						"b": 2,
+						"c": [ 1, 2, 3]
+					},
+					  {
+						  "a": 3,
+						  "b": 4,
+						"c": [ 1, 2, 3]
+					  },
+					 {
+						 "a": 5,
+						 "b": 6,
+					"c": [ 1, 2, 3]
+					 },
+				],
+				"test_bool": false
+			}
+		)"});
+
+
+//		Json_Value json = parse(load_json_from_file("ship_data.json"));
 //
-//
-////		Json_Value json = parse(load_json_from_file("ship_data.json"));
-////
-////		write_json(json_to_string(json), "write_json_test.json");
-//	}
-//}
+		write_json(json_to_string(json), "write_json_test.json");
+	}
+}
 //
 //TEST_CASE("JSON OBJECTS") {
 //
