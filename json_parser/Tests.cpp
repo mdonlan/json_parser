@@ -16,7 +16,7 @@ TEST_CASE("\nBasic Test\n", "[basic]") {
 	Json_Value json = parse(load_json_from_file("test_files/json_testing.json"));
 	REQUIRE(json.type == Value_Type::OBJECT);
 
-	Json_Obj_Test& obj = json.to_obj();
+	Json_Object& obj = json.to_obj();
 	REQUIRE(obj.size() == 6);
 
 	REQUIRE(json["id"].to_int() == 1);
@@ -261,7 +261,7 @@ TEST_CASE("SERIALIZE") {
 			tile.y = tile_data["y"].to_int();
 			tile.room = tile_data["room"].to_int();
 
-			Json_Obj_Test& walls_obj = tile_data["walls"].to_obj();
+			Json_Object& walls_obj = tile_data["walls"].to_obj();
 			for (auto wall_data : walls_obj) {
 				tile.walls[wall_data.first] = wall_data.second.to_bool();
 			}
@@ -416,6 +416,10 @@ TEST_CASE("Write/Edit Json") {
 		REQUIRE(value.type == Value_Type::STRING);
 		REQUIRE(json["foo"].to_str().compare("hello world") == 0);
 	}
+	
+	SECTION("Write Objects") {
+		Json_Value json = new Json_Object;
+	}
 
 //	SECTION("Write Nested Values") {
 //		Json_Value json = parse("{}");
@@ -473,6 +477,27 @@ TEST_CASE("FILE I/O") {
 //
 		write_json(json_to_string(json), "write_json_test.json");
 	}
+}
+
+TEST_CASE("Stuff for Medieval Merchant Game") {
+	// FIXED: issue in parse_array in regards to removing parent at end of parse_array
+	// trying to save and load the world and having issues
+	// currently the save looks like its mostly working, but the load seems like its
+	// only loading one faction then stopping
+	Json_Value json = parse(std::string{R"(
+	{
+		 "factions": [
+			{
+				"towns": []
+			},
+			{
+				"test": "blah"
+			}
+		]
+	 }
+	)"});
+	
+	
 }
 //
 //TEST_CASE("JSON OBJECTS") {

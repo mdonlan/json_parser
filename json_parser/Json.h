@@ -35,7 +35,7 @@ struct Token {
 	std::variant<std::string, float, bool, char> value;
 };
 
-struct Json_Obj;
+//struct Json_Obj;
 struct Json_Value;
 typedef std::vector<Json_Value> Json_Array;
 
@@ -50,20 +50,30 @@ enum class Value_Type {
 	EMPTY
 };
 
-typedef std::map<std::string, Json_Value> Json_Obj_Test;
+typedef std::map<std::string, Json_Value> Json_Object;
 
 struct Json_Value {
+	Json_Value(){};
+	Json_Value(int num) { value = num; type = Value_Type::NUMBER;};
+	Json_Value(std::string str) { value = str; type = Value_Type::STRING;};
+	Json_Value(Json_Object* obj) { value = obj; type = Value_Type::OBJECT;};
+	Json_Value(Json_Array* arr) { value = arr; type = Value_Type::ARRAY;};
 	Value_Type type = Value_Type::NULL_TYPE;
-	std::variant<std::monostate, std::string, int, float, bool, Json_Obj*, Json_Array*, Json_Obj_Test*> value = 0;
+	std::variant<std::monostate, std::string, int, float, bool, Json_Array*, Json_Object*> value = 0;
 	Json_Value& operator[](std::string key);
 	Json_Value& operator[](int i);
 	void operator=(std::string str);
 	void operator=(int num);
+	void operator=(Json_Object* obj);
+	void operator=(bool val);
+	void operator=(float val);
+	void operator=(unsigned int val);
+	void operator=(const char* val);
 	const std::string to_str();
 	float to_float();
 	int to_int();
 	Json_Array& to_array();
-	Json_Obj_Test& to_obj();
+	Json_Object& to_obj();
 	bool to_bool();
 };
 

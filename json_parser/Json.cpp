@@ -290,7 +290,7 @@ void parse_token(Token token, Parser* parser) {
 void parse_object(Parser* parser) {
 	Json_Value obj_value;
 	obj_value.type = Value_Type::OBJECT;
-	obj_value.value = new Json_Obj_Test{};
+	obj_value.value = new Json_Object{};
 	
 	if (!parser->has_set_root) {
 		parser->root_value = obj_value;
@@ -346,11 +346,14 @@ void parse_array(Parser* parser) {
 		current_token = parser->tokens[parser->token_index];
 	}
 	
-	if (parser->parents.size() > 0) {
-		parser->active_value = parser->parents[parser->parents.size() - 1];
-	} else {
-		parser->active_value = Json_Value{};
-	}
+	parser->active_value = parser->parents.back();
+	parser->parents.pop_back();
+	
+//	if (parser->parents.size() > 0) {
+//		parser->active_value = parser->parents[parser->parents.size() - 1];
+//	} else {
+//		parser->active_value = Json_Value{};
+//	}
 }
 
 Json_Value parse_tokens(std::vector<Token>& tokens, Parser* parser, bool print_error) {
@@ -412,7 +415,7 @@ Json_Value& Json_Value::operator[](int i) {
 // if there is no matching key then return an empty value
 Json_Value& Json_Value::operator[](std::string key) {
 	if (this->type == Value_Type::OBJECT) {
-		Json_Obj_Test& obj = this->to_obj();
+		Json_Object& obj = this->to_obj();
 		
 		if (obj.contains(key)) {
 			return obj.at(key); // if key exists return ref
@@ -425,8 +428,8 @@ Json_Value& Json_Value::operator[](std::string key) {
 	} else if (this->type == Value_Type::NULL_TYPE) {
 		Json_Value value;
 		this->type = Value_Type::OBJECT;
-		this->value = new Json_Obj_Test{};
-		Json_Obj_Test& obj = this->to_obj();
+		this->value = new Json_Object{};
+		Json_Object& obj = this->to_obj();
 		obj[key] = Json_Value{};
 		
 		return this->to_obj()[key];
@@ -578,7 +581,7 @@ const std::string Json_Value::to_str() { return std::get<std::string>(this->valu
 float Json_Value::to_float() { return std::get<float>(this->value); }
 int Json_Value::to_int() { return *std::get_if<float>(&this->value); }
 Json_Array& Json_Value::to_array() { return (*std::get<Json_Array*>(this->value)); }
-Json_Obj_Test& Json_Value::to_obj() { return (*std::get<Json_Obj_Test*>(this->value)); }
+Json_Object& Json_Value::to_obj() { return (*std::get<Json_Object*>(this->value)); }
 bool Json_Value::to_bool() { return std::get<bool>(this->value); }
 
 void json_free(Json_Value& value) {
@@ -612,6 +615,31 @@ void Json_Value::operator=(std::string str) {
 	this->value = json.value;
 }
 
+void Json_Value::operator=(Json_Object* obj) {
+	this->type = Value_Type::OBJECT;
+	this->value = new Json_Object{};
+}
+
+void Json_Value::operator=(bool val) {
+	this->type = Value_Type::BOOL;
+	this->value = val;
+}
+
+void Json_Value::operator=(float val) {
+	this->type = Value_Type::NUMBER;
+	this->value = val;
+}
+
+void Json_Value::operator=(unsigned int val) {
+	this->type = Value_Type::NUMBER;
+	this->value = (float)val;
+}
+
+void Json_Value::operator=(const char* val) {
+	this->type = Value_Type::STRING;
+	this->value = val;
+}
+
 void write_json(std::string json_str, std::string filename) {
 	std::ofstream file(filename);
 	  if (file.is_open()) {
@@ -641,7 +669,7 @@ std::string get_string_from_value(Json_Value value, int indent) {
 	if (value.type == Value_Type::OBJECT) {
 		indent++;
 		str += "{\n";
-		Json_Obj_Test& obj = value.to_obj();
+		Json_Object& obj = value.to_obj();
 		int count = 0;
 		for (auto& prop : obj) {
 			do_indent(str, indent);
