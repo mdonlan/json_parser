@@ -20,6 +20,8 @@ TEST_CASE("\nBasic Test\n", "[basic]") {
 	REQUIRE(obj.size() == 6);
 
 	REQUIRE(json["id"].to_int() == 1);
+	
+//	float testing = json["id"];
 
 	Json_Value value = json["id"];
 	value.value = 2;
@@ -499,6 +501,29 @@ TEST_CASE("Stuff for Medieval Merchant Game") {
 	
 	
 }
+
+
+TEST_CASE("Implicit Conversions") {
+	Json_Value json = parse(std::string{R"(
+	{
+		"id": 7,
+		"name": "test name",
+		"is_true": true
+	}
+	)"});
+	
+	float float_number = json["id"];
+//
+	REQUIRE(float_number == 7);
+//
+	int int_number = json["id"];
+	REQUIRE(int_number == 7);
+	
+	std::string name = json["name"];
+//
+	REQUIRE(name == "test name");
+}
+
 //
 //TEST_CASE("JSON OBJECTS") {
 //

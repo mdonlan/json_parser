@@ -439,6 +439,32 @@ Json_Value& Json_Value::operator[](std::string key) {
 	assert(false);
 }
 
+Json_Value& Json_Value::operator[](const char key[]) {
+	if (this->type == Value_Type::OBJECT) {
+		Json_Object& obj = this->to_obj();
+		
+		if (obj.contains(key)) {
+			return obj.at(key); // if key exists return ref
+		} else {
+			// if no key, create it and return ref
+			Json_Value value;
+			obj.insert({key, value});
+			return obj.at(key);
+		}
+	} else if (this->type == Value_Type::NULL_TYPE) {
+		Json_Value value;
+		this->type = Value_Type::OBJECT;
+		this->value = new Json_Object{};
+		Json_Object& obj = this->to_obj();
+		obj[key] = Json_Value{};
+		
+		return this->to_obj()[key];
+	} else {
+		assert(false);
+	}
+	assert(false);
+}
+
 float get_number(Json_Value value_node) { return std::get<float>(value_node.value); }
 bool get_bool(Json_Value value_node) { return std::get<bool>(value_node.value); }
 

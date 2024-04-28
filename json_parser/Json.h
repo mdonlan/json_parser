@@ -35,7 +35,6 @@ struct Token {
 	std::variant<std::string, float, bool, char> value;
 };
 
-//struct Json_Obj;
 struct Json_Value;
 typedef std::vector<Json_Value> Json_Array;
 
@@ -69,12 +68,19 @@ struct Json_Value {
 	void operator=(float val);
 	void operator=(unsigned int val);
 	void operator=(const char* val);
+	Json_Value& operator[](const char key[]);
 	const std::string to_str();
 	float to_float();
 	int to_int();
 	Json_Array& to_array();
 	Json_Object& to_obj();
 	bool to_bool();
+	
+	// new operators for implicit conversion
+	operator float() const {return std::get<float>(value); };
+	operator int() const {return std::get<float>(value); };
+	operator size_t() const {return std::get<float>(value); };
+	operator std::string() const {return std::get<std::string>(value); };
 };
 
 struct Parser {
