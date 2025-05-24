@@ -18,3 +18,10 @@ xcuserdata/
 !*.xcworkspace/contents.xcworkspacedata
 /*.gcno
 **/xcshareddata/WorkspaceSettings.xcsettings
+
+.vs/
+x64
+city_bui.06ECC84D
+saves
+/audio/extra
+extra

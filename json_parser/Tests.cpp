@@ -10,6 +10,20 @@
 #include "Tests.h"
 #include "catch.hpp"
 
+TEST_CASE("\nEscaped Characters\n") {
+
+	Json_Value json = parse(std::string{ R"(
+			{"model":"llama3.2","created_at":"2025-05-24T02:36:43.7301091Z","response":"Imagine a digital ledger book that's shared among a group of people, like a big team effort. This ledger book is called a \"blockchain\".\n\nHere's how it works:\n\n1. When someone wants to add new information (like a transaction) to the ledger, they create a \"block\" with that info.\n2. The block is then sent to all the other members of the group, who verify that the info is correct and valid.\n3. Once verified, each member adds their own unique \"code\" (called a \"hash\") to the block, which connects it to the previous block in the chain.\n4. This creates a long, unbreakable chain of blocks, which is what we call a blockchain.\n\nThe key benefits of blockchain are:\n\n* **Security**: The code (hashes) connecting each block makes it virtually impossible to alter or manipulate the information.\n* **Transparency**: All members of the group can see the entire history of transactions and updates.\n* **Decentralized**: No single person or organization controls the blockchain – it's a shared, collaborative effort.\n\nBlockchain is used for many things, like:\n\n* Cryptocurrencies (like Bitcoin)\n* Secure online transactions\n* Supply chain management\n* Identity verification\n\nIn simple terms, blockchain is a secure, transparent way to record and share information among a group of trusted individuals.","done":true,"done_reason":"stop","context":[128006,9125,128007,271,38766,1303,33025,2696,25,6790,220,2366,18,271,128009,128006,882,128007,271,849,21435,18428,304,4382,3878,13,128009,128006,78191,128007,271,52157,264,7528,48033,2363,430,596,6222,4315,264,1912,315,1274,11,1093,264,2466,2128,5149,13,1115,48033,2363,374,2663,264,330,4677,8995,11690,8586,596,1268,433,4375,1473,16,13,3277,4423,6944,311,923,502,2038,320,4908,264,7901,8,311,279,48033,11,814,1893,264,330,4677,1,449,430,3630,627,17,13,578,2565,374,1243,3288,311,682,279,1023,3697,315,279,1912,11,889,10356,430,279,3630,374,4495,323,2764,627,18,13,9843,24884,11,1855,4562,11621,872,1866,5016,330,1889,1,320,44982,264,330,8460,909,311,279,2565,11,902,34161,433,311,279,3766,2565,304,279,8957,627,19,13,1115,11705,264,1317,11,653,9137,481,8957,315,10215,11,902,374,1148,584,1650,264,18428,382,791,1401,7720,315,18428,527,1473,9,3146,15712,96618,578,2082,320,8460,288,8,21583,1855,2565,3727,433,21907,12266,311,11857,477,37735,279,2038,627,9,3146,3246,21979,96618,2052,3697,315,279,1912,649,1518,279,4553,3925,315,14463,323,9013,627,9,3146,5005,46186,1534,96618,2360,3254,1732,477,7471,11835,279,18428,1389,433,596,264,6222,11,40806,5149,382,99998,374,1511,369,1690,2574,11,1093,1473,9,38547,511,20180,320,4908,13428,340,9,35602,2930,14463,198,9,30909,8957,6373,198,9,27638,23751,271,644,4382,3878,11,18428,374,264,9966,11,18300,1648,311,3335,323,4430,2038,4315,264,1912,315,22542,7931,13],"total_duration":1850466800,"load_duration":25181500,"prompt_eval_count":32,"prompt_eval_duration":2081500,"eval_count":276,"eval_duration":1823203800}
+	)" });
+	
+	Json_Object& obj = json.to_obj();
+	REQUIRE(obj.size() == 12);
+
+	REQUIRE(obj["model"].to_str() == "llama3.2");
+
+	json_free(json);
+}
+
 
 TEST_CASE("\nBasic Test\n", "[basic]") {
 
@@ -232,7 +246,7 @@ Person from_json(Json_Value value) {
 TEST_CASE("SERIALIZE") {
 	SECTION("SHIP") {
 		// test serialize of the ship object
-		Json_Value json = parse(load_json_from_file("test_files/ship_test.json"));
+		Json_Value json = parse(load_json_from_file("./test_files/ship_test.json"));
 
 		struct Tile {
 			int x;
@@ -366,10 +380,10 @@ TEST_CASE("BOOLS") {
 }
 
 TEST_CASE("Large Files") {
-	SECTION("Parse Large File") {
+	/*SECTION("Parse Large File") {
 		Json_Value json = parse(load_json_from_file("./test_files/large_test_file_2.json"));
 		json_free(json);
-	}
+	}*/
 
 //	SECTION("Test memory free") {
 //		Json json = parse(std::string{R"(

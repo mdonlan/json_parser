@@ -8,10 +8,12 @@
 #include "Json.h"
 #include <fstream>
 #include <math.h>
+#include <cassert>
 
 Parser* _parser = new Parser;
 
 void consume(Parser* parser) {
+	
 	eat_whitespace(parser);
 	char c = parser->str[parser->index];
 	
@@ -85,7 +87,8 @@ void consume(Parser* parser) {
 		
 		while (!found_end_of_string) {
 			char pc = peek(parser, p_index);
-			if (pc == '"') {
+
+			if (pc == '"' && peek(parser, p_index - 1) != '\\') {
 				found_end_of_string = true;
 				eat_whitespace(parser);
 				if (peek(parser, p_index + 1) == ':') {
@@ -103,6 +106,7 @@ void consume(Parser* parser) {
 					// hit end of the string w/out finding a closing quote
 					found_end_of_string = true;
 					token.type = Token_Type::UNTERMINATED_STRING;
+					parser->index--; // this is a weird thing that happened on windows when compiling, but not on mac? don't need when compiling on mac
 				}
 			}
 			
@@ -389,7 +393,7 @@ const std::string load_json_from_file(const std::string& file_name) {
 	std::ifstream json_test_file(file_name);
 	std::string json_test_str;
 	if (!json_test_file.is_open()) {
-		printf("ERROR - Failed to open file test_json.json\n");
+		printf("ERROR - Failed to open file %s\n", file_name.c_str());
 		assert(false);
 	}
 	json_test_str.assign((std::istreambuf_iterator<char>(json_test_file)), (std::istreambuf_iterator<char>()));

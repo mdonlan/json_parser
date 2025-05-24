@@ -17,6 +17,7 @@ constexpr bool DEV_MODE = true;
 int main(int argc, const char * argv[]) {
 	if (DEV_MODE) {
 		int result = Catch::Session().run(argc, argv);
+		std::cin.get();
 		return result;
 	} else {
 		return 0;
